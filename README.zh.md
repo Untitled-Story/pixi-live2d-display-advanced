@@ -283,6 +283,17 @@ model.destroy();
 
 https://user-images.githubusercontent.com/34002411/230723497-612146b1-5593-4dfa-911d-accb331c5b9b.mp4
 
+## 多动作同步播放
+
+```ts
+model.parallelMotion([
+  {group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL},
+  {group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL},
+]);
+```
+
+若需要同步播放表情、声音等请使用`model.motion`/`model.speak`播放其中一个动作，其余动作用`model.parallelMotion`播放。列表中按照index每一项都有独立的优先级控制，和`model.motion`逻辑一致。
+
 # 请参阅此处了解更多文档： [文档](https://guansss.github.io/pixi-live2d-display/)
 
 
