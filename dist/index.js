@@ -55,6 +55,12 @@ var __async = (__this, __arguments, generator) => {
      */
     sound: true,
     /**
+     * fftSize for sound analyzer for lipsync.
+     * Must be a power of 2 between 2^5 and 2^15, so one of: 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, and 32768.
+     * @default 512
+     */
+    fftSize: 512,
+    /**
      * Deferring motion and corresponding sound until both are loaded.
      */
     motionSync: true,
@@ -76,7 +82,7 @@ var __async = (__this, __arguments, generator) => {
     preserveExpressionOnMotion: true,
     cubism4: CubismConfig
   };
-  const VERSION = "v0.5.0-mm-2";
+  const VERSION = "v0.5.0-mm-3";
   const logger = {
     log(tag, ...messages) {
       if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
@@ -795,7 +801,7 @@ var __async = (__this, __arguments, generator) => {
     static addAnalyzer(audio, context) {
       const source = context.createMediaElementSource(audio);
       const analyser = context.createAnalyser();
-      analyser.fftSize = 256;
+      analyser.fftSize = config.fftSize;
       analyser.minDecibels = -90;
       analyser.maxDecibels = -10;
       analyser.smoothingTimeConstant = 0.85;
@@ -1137,15 +1143,13 @@ var __async = (__this, __arguments, generator) => {
             audio = SoundManager.add(
               file,
               (that = this) => {
-                console.log("Audio finished playing");
                 onFinish == null ? void 0 : onFinish();
-                console.log(onFinish);
                 resetExpression && expression && that.expressionManager && that.expressionManager.resetExpression();
                 that.currentAudio = void 0;
               },
               // reset expression when audio is done
               (e, that = this) => {
-                console.log("Error during audio playback:", e);
+                logger.error(this.tag, "Error during audio playback:", e);
                 onError == null ? void 0 : onError(e);
                 resetExpression && expression && that.expressionManager && that.expressionManager.resetExpression();
                 that.currentAudio = void 0;
