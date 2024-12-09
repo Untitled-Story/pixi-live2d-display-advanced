@@ -38,7 +38,13 @@ export interface Bounds {
     height: number;
 }
 
-export interface InternalModelOptions extends MotionManagerOptions {}
+export interface InternalModelOptions extends MotionManagerOptions {
+    /**
+     * Define natural movements depth (0.0-1.0).
+     * @default 1.0
+     */
+    breathDepth?: number
+}
 
 const tempBounds: Bounds = { x: 0, y: 0, width: 0, height: 0 };
 
@@ -53,6 +59,8 @@ export abstract class InternalModel extends utils.EventEmitter {
     abstract readonly coreModel: object;
 
     abstract readonly settings: ModelSettings;
+
+    abstract readonly options: InternalModelOptions;
 
     focusController = new FocusController();
 

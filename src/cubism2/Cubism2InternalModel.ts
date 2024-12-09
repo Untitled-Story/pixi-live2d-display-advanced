@@ -20,6 +20,7 @@ const tempMatrixArray = new Float32Array([
 
 export class Cubism2InternalModel extends InternalModel {
     settings: Cubism2ModelSettings;
+    options: InternalModelOptions;
 
     coreModel: Live2DModelWebGL;
     motionManager: Cubism2MotionManager;
@@ -66,6 +67,7 @@ export class Cubism2InternalModel extends InternalModel {
 
         this.coreModel = coreModel;
         this.settings = settings;
+        this.options = Object.assign({}, {breathDepth: 1}, options);
         this.motionManager = new Cubism2MotionManager(settings, options);
         this.parallelMotionManager = [];
         this.eyeBlink = new Live2DEyeBlink(coreModel);
@@ -296,10 +298,10 @@ export class Cubism2InternalModel extends InternalModel {
     updateNaturalMovements(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp) {
         const t = (now / 1000) * 2 * Math.PI;
 
-        this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * Math.sin(t / 6.5345) * 0.5);
-        this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * Math.sin(t / 3.5345) * 0.5);
-        this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * Math.sin(t / 5.5345) * 0.5);
-        this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * Math.sin(t / 15.5345) * 0.5);
+        this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * this.options.breathDepth! * Math.sin(t / 6.5345) * 0.5);
+        this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * this.options.breathDepth! * Math.sin(t / 3.5345) * 0.5);
+        this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * this.options.breathDepth! * Math.sin(t / 5.5345) * 0.5);
+        this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * this.options.breathDepth! * Math.sin(t / 15.5345) * 0.5);
 
         this.coreModel.setParamFloat(this.breathParamIndex, 0.5 + 0.5 * Math.sin(t / 3.2345));
     }

@@ -18,6 +18,7 @@ async function main() {
     const model = await Live2DModel.from(modelURL, {
         ticker: Ticker.shared,
         autoFocus: false,
+        breathDepth: 0.2
     });
 
     app.stage.addChild(model);

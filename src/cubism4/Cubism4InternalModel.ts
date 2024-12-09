@@ -30,6 +30,7 @@ const tempMatrix = new CubismMatrix44();
 
 export class Cubism4InternalModel extends InternalModel {
     settings: Cubism4ModelSettings;
+    options: InternalModelOptions;
     coreModel: CubismModel;
     motionManager: Cubism4MotionManager;
     parallelMotionManager: Cubism4ParallelMotionManager[];
@@ -77,6 +78,7 @@ export class Cubism4InternalModel extends InternalModel {
 
         this.coreModel = coreModel;
         this.settings = settings;
+        this.options = Object.assign({}, {breathDepth: 1}, options);
         this.motionManager = new Cubism4MotionManager(settings, options);
         this.parallelMotionManager = [];
 
@@ -89,12 +91,11 @@ export class Cubism4InternalModel extends InternalModel {
         if (this.settings.getEyeBlinkParameters()?.length) {
             this.eyeBlink = CubismEyeBlink.create(this.settings);
         }
-
         this.breath.setParameters([
-            new BreathParameterData(this.idParamAngleX, 0.0, 15.0, 6.5345, 0.5),
-            new BreathParameterData(this.idParamAngleY, 0.0, 8.0, 3.5345, 0.5),
-            new BreathParameterData(this.idParamAngleZ, 0.0, 10.0, 5.5345, 0.5),
-            new BreathParameterData(this.idParamBodyAngleX, 0.0, 4.0, 15.5345, 0.5),
+            new BreathParameterData(this.idParamAngleX, 0.0, 15.0 * this.options.breathDepth!, 6.5345, 0.5),
+            new BreathParameterData(this.idParamAngleY, 0.0, 8.0 * this.options.breathDepth!, 3.5345, 0.5),
+            new BreathParameterData(this.idParamAngleZ, 0.0, 10.0 * this.options.breathDepth!, 5.5345, 0.5),
+            new BreathParameterData(this.idParamBodyAngleX, 0.0, 4.0 * this.options.breathDepth!, 15.5345, 0.5),
             new BreathParameterData(this.idParamBreath, 0.0, 0.5, 3.2345, 0.5),
         ]);
 

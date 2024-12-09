@@ -1,5 +1,4 @@
-import type { InternalModel, ModelSettings, MotionPriority } from "@/cubism-common";
-import type { MotionManagerOptions } from "@/cubism-common/MotionManager";
+import type { InternalModel, InternalModelOptions, ModelSettings, MotionPriority } from "@/cubism-common";
 import { VOLUME } from "@/cubism-common/SoundManager";
 import type { Live2DFactoryOptions } from "@/factory/Live2DFactory";
 import { Live2DFactory } from "@/factory/Live2DFactory";
@@ -11,7 +10,7 @@ import { Live2DTransform } from "./Live2DTransform";
 import type { JSONObject } from "./types/helpers";
 import { logger } from "./utils";
 
-export interface Live2DModelOptions extends MotionManagerOptions, AutomatorOptions {}
+export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptions {}
 
 const tempPoint = new Point();
 const tempMatrix = new Matrix();
