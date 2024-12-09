@@ -74,7 +74,7 @@ const config = {
   preserveExpressionOnMotion: true,
   cubism4: CubismConfig
 };
-const VERSION = "v0.5.0-mm-1";
+const VERSION = "v0.5.0-mm-2";
 const logger = {
   log(tag, ...messages) {
     if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
@@ -3063,6 +3063,7 @@ class Cubism2InternalModel extends InternalModel {
   constructor(coreModel, settings, options) {
     super();
     __publicField(this, "settings");
+    __publicField(this, "options");
     __publicField(this, "coreModel");
     __publicField(this, "motionManager");
     __publicField(this, "parallelMotionManager");
@@ -3090,6 +3091,7 @@ class Cubism2InternalModel extends InternalModel {
     __publicField(this, "hasDrawn", false);
     this.coreModel = coreModel;
     this.settings = settings;
+    this.options = Object.assign({}, { breathDepth: 1 }, options);
     this.motionManager = new Cubism2MotionManager(settings, options);
     this.parallelMotionManager = [];
     this.eyeBlink = new Live2DEyeBlink(coreModel);
@@ -3260,10 +3262,10 @@ class Cubism2InternalModel extends InternalModel {
   }
   updateNaturalMovements(dt, now) {
     const t = now / 1e3 * 2 * Math.PI;
-    this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * Math.sin(t / 6.5345) * 0.5);
-    this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * Math.sin(t / 3.5345) * 0.5);
-    this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * Math.sin(t / 5.5345) * 0.5);
-    this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * Math.sin(t / 15.5345) * 0.5);
+    this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * this.options.breathDepth * Math.sin(t / 6.5345) * 0.5);
+    this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * this.options.breathDepth * Math.sin(t / 3.5345) * 0.5);
+    this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * this.options.breathDepth * Math.sin(t / 5.5345) * 0.5);
+    this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * this.options.breathDepth * Math.sin(t / 15.5345) * 0.5);
     this.coreModel.setParamFloat(this.breathParamIndex, 0.5 + 0.5 * Math.sin(t / 3.2345));
   }
   draw(gl) {

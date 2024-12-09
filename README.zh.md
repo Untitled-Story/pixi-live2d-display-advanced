@@ -18,6 +18,7 @@
 -   从上传的文件或 zip 文件中加载 (实验性功能)
 -   完善的类型定义 - 我们都喜欢类型！
 -   实时口型同步
+-   同时播放多个动作
 
 #### 要求
 
@@ -74,20 +75,20 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 #### 通过 npm
 
 ```sh
-npm install pixi-live2d-display-lipsyncpatch
+npm install pixi-live2d-display-mulmotion
 ```
 
 ```js
-import { Live2DModel } from 'pixi-live2d-display-lipsyncpatch';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion';
 
 // 如果只需要 Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-lipsyncpatch/cubism2';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2';
 
 // 如果只需要 Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-lipsyncpatch/cubism4';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4';
 ```
 
-#### 通过 CDN (口型同步修改版)
+#### 通过 CDN (口型同步修改版 / 多动作播放未支持)
 
 ```html
 <!-- 加载 Cubism 和 PixiJS -->
@@ -109,179 +110,7 @@ import { Live2DModel } from 'pixi-live2d-display-lipsyncpatch/cubism4';
 
 ## 基础使用
 
-### 按需引入PIXI (推荐)
-
-```typescript
-import { Live2DModel } from 'pixi-live2d-display-lipsyncpatch/cubism4';
-import { Application, Ticker } from 'pixi.js';
-
-(async function () {
-  const app = Application({
-    view: document.getElementById('canvas'),
-  });
-
-  const model = await Live2DModel.from('shizuku.model.json', {
-    // register Ticker for model
-    ticker: Ticker.shared,
-  });
-
-  app.stage.addChild(model);
-
-  // transforms
-  model.x = 100;
-  model.y = 100;
-  model.rotation = Math.PI;
-  model.skew.x = Math.PI;
-  model.scale.set(2, 2);
-  model.anchor.set(0.5, 0.5);
-
-  // interaction
-  model.on('hit', (hitAreas) => {
-    if (hitAreas.includes('body')) {
-      model.motion('tap_body');
-    }
-  });
-})();
-```
-### 全量引入PIXI
-
-```javascript
-import * as PIXI from 'pixi.js';
-import { Live2DModel } from 'pixi-live2d-display';
-
-// 将 PIXI 暴露到 window 上，这样插件就可以通过 window.PIXI.Ticker 来自动更新模型
-window.PIXI = PIXI;
-
-(async function () {
-    const app = new PIXI.Application({
-        view: document.getElementById('canvas'),
-    });
-
-    const model = await Live2DModel.from('shizuku.model.json');
-
-    app.stage.addChild(model);
-
-    // 变换
-    model.x = 100;
-    model.y = 100;
-    model.rotation = Math.PI;
-    model.skew.x = Math.PI;
-    model.scale.set(2, 2);
-    model.anchor.set(0.5, 0.5);
-
-    // 交互
-    model.on('hit', (hitAreas) => {
-        if (hitAreas.includes('body')) {
-            model.motion('tap_body');
-        }
-    });
-})();
-```
-
-## 口型同步
-
-### 触发模型动作同时播放音频同步口型
-```ts
-const category_name = "Idle" // 模型动作名称
-const animation_index = 0 // 该运动类别下的动画索引 [null => random]
-const priority_number = 3 // 优先级编号 如果你想保持当前动画继续或强制移动到新动画 可以调整此值 [0: 无优先级, 1: 空闲, 2: 普通, 3: 强制]
-const audio_link = "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v1.0.3/playground/test.mp3" // 音频链接地址 [可选参数，可以为null或空] [相对或完整url路径] [mp3或wav文件]
-const volume = 1; // 声音大小 [可选参数，可以为null或空][0.0-1.0]
-const expression = 4; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
-const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
-
-model.motion(category_name, animation_index, priority_number, {
-  sound: audio_link,
-  volume: volume,
-  expression: expression,
-  resetExpression: resetExpression
-});
-
-// 如果不想要声音 就忽略 sound 和 volume
-model.motion(category_name, animation_index, priority_number);
-model.motion(category_name, animation_index, priority_number, { expression: expression, resetExpression: resetExpression });
-model.motion(category_name, animation_index, priority_number, { expression: expression, resetExpression: false });
-
-```
-
-### 仅播放音频同步口型
-```ts
-const audio_link = "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v1.0.3/playground/test.mp3" // 音频链接地址 [可选参数，可以为null或空] [相对或完整url路径] [mp3或wav文件]
-const volume = 1; // 声音大小 [可选参数，可以为null或空][0.0-1.0]
-const expression = 4; // 模型表情 [可选参数，可以为null或空] [index | expression表情名称]
-const resetExpression = true; // 是否在动画结束后将表情expression重置为默认值 [可选参数，可以为null或空] [true | false] [default: true]
-const crossOrigin = "anonymous"; // 使用不同来源的音频 [可选] [default: null]
-
-model.speak(audio_link, {
-  volume: volume,
-  expression: expression,
-  resetExpression: resetExpression,
-  crossOrigin: crossOrigin
-});
-
-// 或者如果您想保留某些默认设置
-model.speak(audio_link);
-model.speak(audio_link, { volume: volume });
-model.speak(audio_link, { expression: expression, resetExpression: resetExpression });
-
-```
-
-### 解决报错 "MediaElementAudioSource outputs zeroes due to CORS access restrictions for"
-
-- 这两个函数都有 crossOrigin 参数。将其设置为 crossOrigin : "anonymous" 即可解决。
-
-```ts
-model.speak(audio_link, { expression: expression, crossOrigin: "anonymous" });
-
-model.motion(category_name, animation_index, priority_number, { sound: audio_link, volume: volume, crossOrigin: "anonymous" });
-
-```
-
-### 立即中断音频播放和口型同步
-
-```ts
-model.stopSpeaking();
-
-```
-
-### 重置动作以及音频和口型同步
-
-```ts
-model.stopMotions();
-
-```
-
-### 音频播放结束后使用回调函数
-
-```ts
-model.speak(audio_link, {
-  volume: volume, 
-  onFinish: () => { console.log("Voiceline is over") },
-  onError: (err) => { console.log("Error: ", err) } // [如果发生任何错误]
-});
-
-model.motion(category_name, animation_index, priority_number, {
-  sound: audio_link,
-  volume: volume,
-  expression: expression,
-  onFinish: () => { console.log("Voiceline and Animation is over") },
-  onError: (err) => { console.log("Error: ", err) } // [如果发生任何错误]
-});
-
-```
-
-### 完全销毁模型 (destroy)
-
-- 这也将停止运动和音频的播放并隐藏模型
-
-```ts
-model.destroy();
-
-```
-
-### 口型同步效果预览
-
-https://user-images.githubusercontent.com/34002411/230723497-612146b1-5593-4dfa-911d-accb331c5b9b.mp4
+参阅此处: [pixi-live2d-display-lipsync](https://github.com/RaSan147/pixi-live2d-display)
 
 ## 多动作同步播放
 
@@ -297,42 +126,3 @@ model.parallelMotion([
 # 请参阅此处了解更多文档： [文档](https://guansss.github.io/pixi-live2d-display/)
 
 
-
-## 包导入
-
-当按需导入 Pixi 的包时，需要手动注册相应的组件来启用可选功能
-
-```javascript
-import { Application } from '@pixi/app';
-import { Ticker } from '@pixi/ticker';
-import { InteractionManager } from '@pixi/interaction';
-import { Live2DModel } from 'pixi-live2d-display';
-
-// 为 Live2DModel 注册 Ticker
-Live2DModel.registerTicker(Ticker);
-
-// 为 Application 注册 Ticker
-Application.registerPlugin(TickerPlugin);
-
-// 注册 InteractionManager 以支持 Live2D 模型的自动交互
-Renderer.registerPlugin('interaction', InteractionManager);
-
-(async function () {
-    const app = new Application({
-        view: document.getElementById('canvas'),
-    });
-
-    const model = await Live2DModel.from('shizuku.model.json');
-
-    app.stage.addChild(model);
-})();
-```
-
----
-
-示例的 Live2D 模型 Shizuku (Cubism 2.1) 和 Haru (Cubism 4) 遵守 Live2D 的
-[Free Material License](https://www.live2d.com/eula/live2d-free-material-license-agreement_en.html)
-
-# 鸣谢
-* [fatalgoth](https://github.com/fatalgoth/pixi-live2d-display) 让口型同步成为可能。
-* [windjackz](https://github.com/windjackz/pixi-live2d-display) 创建了所有酷炫的功能。

@@ -76,7 +76,7 @@ var __async = (__this, __arguments, generator) => {
     preserveExpressionOnMotion: true,
     cubism4: CubismConfig
   };
-  const VERSION = "v0.5.0-mm-1";
+  const VERSION = "v0.5.0-mm-2";
   const logger = {
     log(tag, ...messages) {
       if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
@@ -3065,6 +3065,7 @@ var __async = (__this, __arguments, generator) => {
     constructor(coreModel, settings, options) {
       super();
       __publicField(this, "settings");
+      __publicField(this, "options");
       __publicField(this, "coreModel");
       __publicField(this, "motionManager");
       __publicField(this, "parallelMotionManager");
@@ -3092,6 +3093,7 @@ var __async = (__this, __arguments, generator) => {
       __publicField(this, "hasDrawn", false);
       this.coreModel = coreModel;
       this.settings = settings;
+      this.options = Object.assign({}, { breathDepth: 1 }, options);
       this.motionManager = new Cubism2MotionManager(settings, options);
       this.parallelMotionManager = [];
       this.eyeBlink = new Live2DEyeBlink(coreModel);
@@ -3262,10 +3264,10 @@ var __async = (__this, __arguments, generator) => {
     }
     updateNaturalMovements(dt, now) {
       const t = now / 1e3 * 2 * Math.PI;
-      this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * Math.sin(t / 6.5345) * 0.5);
-      this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * Math.sin(t / 3.5345) * 0.5);
-      this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * Math.sin(t / 5.5345) * 0.5);
-      this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * Math.sin(t / 15.5345) * 0.5);
+      this.coreModel.addToParamFloat(this.angleXParamIndex, 15 * this.options.breathDepth * Math.sin(t / 6.5345) * 0.5);
+      this.coreModel.addToParamFloat(this.angleYParamIndex, 8 * this.options.breathDepth * Math.sin(t / 3.5345) * 0.5);
+      this.coreModel.addToParamFloat(this.angleZParamIndex, 10 * this.options.breathDepth * Math.sin(t / 5.5345) * 0.5);
+      this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, 4 * this.options.breathDepth * Math.sin(t / 15.5345) * 0.5);
       this.coreModel.setParamFloat(this.breathParamIndex, 0.5 + 0.5 * Math.sin(t / 3.2345));
     }
     draw(gl) {
@@ -8483,6 +8485,7 @@ var __async = (__this, __arguments, generator) => {
     constructor(coreModel, settings, options) {
       super();
       __publicField(this, "settings");
+      __publicField(this, "options");
       __publicField(this, "coreModel");
       __publicField(this, "motionManager");
       __publicField(this, "parallelMotionManager");
@@ -8512,6 +8515,7 @@ var __async = (__this, __arguments, generator) => {
       __publicField(this, "centeringTransform", new core.Matrix());
       this.coreModel = coreModel;
       this.settings = settings;
+      this.options = Object.assign({}, { breathDepth: 1 }, options);
       this.motionManager = new Cubism4MotionManager(settings, options);
       this.parallelMotionManager = [];
       this.init();
@@ -8523,10 +8527,10 @@ var __async = (__this, __arguments, generator) => {
         this.eyeBlink = CubismEyeBlink.create(this.settings);
       }
       this.breath.setParameters([
-        new BreathParameterData(this.idParamAngleX, 0, 15, 6.5345, 0.5),
-        new BreathParameterData(this.idParamAngleY, 0, 8, 3.5345, 0.5),
-        new BreathParameterData(this.idParamAngleZ, 0, 10, 5.5345, 0.5),
-        new BreathParameterData(this.idParamBodyAngleX, 0, 4, 15.5345, 0.5),
+        new BreathParameterData(this.idParamAngleX, 0, 15 * this.options.breathDepth, 6.5345, 0.5),
+        new BreathParameterData(this.idParamAngleY, 0, 8 * this.options.breathDepth, 3.5345, 0.5),
+        new BreathParameterData(this.idParamAngleZ, 0, 10 * this.options.breathDepth, 5.5345, 0.5),
+        new BreathParameterData(this.idParamBodyAngleX, 0, 4 * this.options.breathDepth, 15.5345, 0.5),
         new BreathParameterData(this.idParamBreath, 0, 0.5, 3.2345, 0.5)
       ]);
       this.renderer.initialize(this.coreModel);
