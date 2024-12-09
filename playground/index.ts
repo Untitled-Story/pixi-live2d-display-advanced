@@ -3,6 +3,9 @@
 
 import { Application, Ticker } from "pixi.js";
 import { Live2DModel } from "../src";
+import { config } from "../src/config";
+
+config.fftSize = 8192;
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 canvas.width = 800;
@@ -39,6 +42,9 @@ function click() {
         { group: "w-adult-nod02", index: 0 },
         { group: "face_night_closeeye_01", index: 0 },
     ]);
+    model.speak("/minio/voice_ev_shuffle_37_01_14_10.mp3", {
+        resetExpression: false,
+    });
 }
 
 (window as any).click = click;

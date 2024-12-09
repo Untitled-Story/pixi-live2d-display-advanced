@@ -47,6 +47,10 @@ export default defineConfig(({ command, mode }) => {
                     target: "http://localhost:8000",
                     changeOrigin: true,
                 },
+                "/minio": {
+                    target: "http://localhost:8000",
+                    changeOrigin: true,
+                }
             },
         },
         build: {

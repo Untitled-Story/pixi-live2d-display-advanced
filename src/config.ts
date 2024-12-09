@@ -26,6 +26,13 @@ export const config = {
     sound: true,
 
     /**
+     * fftSize for sound analyzer for lipsync.
+     * Must be a power of 2 between 2^5 and 2^15, so one of: 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, and 32768.
+     * @default 512
+     */
+    fftSize: 512,
+
+    /**
      * Deferring motion and corresponding sound until both are loaded.
      */
     motionSync: true,

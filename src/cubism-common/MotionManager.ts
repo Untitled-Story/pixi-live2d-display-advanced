@@ -424,9 +424,9 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
                 audio = SoundManager.add(
                     file,
                     (that = this) => {
-                        console.log('Audio finished playing'); // Add this line
+                        //logger.log(this.tag, 'Audio finished playing'); // Add this line
                         onFinish?.();
-                        console.log(onFinish)
+                        //logger.log(this.tag, onFinish)
                         resetExpression &&
                             expression &&
                             that.expressionManager &&
@@ -434,7 +434,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
                         that.currentAudio = undefined;
                     }, // reset expression when audio is done
                     (e, that = this) => {
-                        console.log('Error during audio playback:', e); // Add this line
+                        logger.error(this.tag, 'Error during audio playback:', e); // Add this line
                         onError?.(e);
                         resetExpression &&
                             expression &&

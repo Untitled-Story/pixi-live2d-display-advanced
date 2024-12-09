@@ -1,4 +1,5 @@
 import { logger, remove } from "@/utils";
+import { config } from "@/config";
 
 const TAG = "SoundManager";
 export const VOLUME = 0.5;
@@ -100,7 +101,7 @@ export class SoundManager {
         const source = context.createMediaElementSource(audio);
         const analyser = context.createAnalyser();
 
-        analyser.fftSize = 256;
+        analyser.fftSize = config.fftSize;
         analyser.minDecibels = -90;
         analyser.maxDecibels = -10;
         analyser.smoothingTimeConstant = 0.85;
