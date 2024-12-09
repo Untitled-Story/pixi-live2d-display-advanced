@@ -1,7 +1,7 @@
 {
-  "name": "pixi-live2d-display-lipsyncpatch",
-  "version": "v0.5.0-ls-7",
-  "description": "Live2D plugin for PixiJS (with lipsync patch)",
+  "name": "pixi-live2d-display-mulmotion",
+  "version": "v0.5.0-mm-1",
+  "description": "Live2D plugin for PixiJS (with lipsync patch (with multi-motion))",
   "main": "dist/index.js",
   "type": "module",
   "exports": {
@@ -28,9 +28,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/RaSan147/pixi-live2d-display.git"
+    "url": "https://github.com/K-bai/pixi-live2d-display.git"
   },
-  "author": "Rasan147 <wwwqweasd147@gmail.com>",
+  "author": "K-bai <kongbaiyo@live.cn>",
   "license": "MIT",
   "scripts": {
     "setup": "node scripts/setup.js",

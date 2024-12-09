@@ -76,7 +76,7 @@ var __async = (__this, __arguments, generator) => {
     preserveExpressionOnMotion: true,
     cubism4: CubismConfig
   };
-  const VERSION = "v0.5.0-ls-7";
+  const VERSION = "v0.5.0-mm-1";
   const logger = {
     log(tag, ...messages) {
       if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
@@ -1467,6 +1467,8 @@ var __async = (__this, __arguments, generator) => {
       this.emit("destroy");
       this.motionManager.destroy();
       this.motionManager = void 0;
+      this.parallelMotionManager.forEach((m) => m.destroy());
+      this.parallelMotionManager = [];
     }
   }
   const TAG$1 = "XHRLoader";
@@ -2484,6 +2486,29 @@ var __async = (__this, __arguments, generator) => {
       });
     }
     /**
+     * Shorthand to start multiple motions in parallel.
+     * @param motionList - The motion list: {
+     *  group: The motion group,
+     *  index: Index in the motion group,
+     *  priority - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
+     * }[]
+     * @return Promise that resolves with a list, indicates the motion is successfully started, with false otherwise.
+     */
+    parallelMotion(motionList) {
+      return __async(this, null, function* () {
+        this.internalModel.extendParallelMotionManager(motionList.length);
+        const result = motionList.map((m, idx) => {
+          var _a;
+          return (_a = this.internalModel.parallelMotionManager[idx]) == null ? void 0 : _a.startMotion(m.group, m.index, m.priority);
+        });
+        let flags = [];
+        for (let r of result) {
+          flags.push(yield r);
+        }
+        return flags;
+      });
+    }
+    /**
      * Stops all playing motions as well as the sound.
      */
     stopMotions() {
@@ -2815,6 +2840,158 @@ var __async = (__this, __arguments, generator) => {
       this.queueManager = void 0;
     }
   }
+  class ParallelMotionManager extends core.utils.EventEmitter {
+    constructor(settings, manager) {
+      super();
+      /**
+       * Tag for logging.
+       */
+      __publicField(this, "tag");
+      __publicField(this, "manager");
+      /**
+       * The ModelSettings reference.
+       */
+      __publicField(this, "settings");
+      /**
+       * Maintains the state of this MotionManager.
+       */
+      __publicField(this, "state", new MotionState());
+      /**
+       * Flags there's a motion playing.
+       */
+      __publicField(this, "playing", false);
+      /**
+       * Flags the instances has been destroyed.
+       */
+      __publicField(this, "destroyed", false);
+      this.settings = settings;
+      this.tag = `ParallelMotionManager(${settings.name})`;
+      this.state.tag = this.tag;
+      this.manager = manager;
+    }
+    /**
+     * Starts a motion as given priority.
+     * @param group - The motion group.
+     * @param index - Index in the motion group.
+     * @param priority - The priority to be applied. default: 2 (NORMAL)
+     * ### OPTIONAL: {name: value, ...}
+     * @param sound - The audio url to file or base64 content
+     * @param volume - Volume of the sound (0-1)
+     * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
+     * @param resetExpression - Reset expression before and after playing sound (default: true)
+     * @param crossOrigin - Cross origin setting.
+     * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
+     */
+    startMotion(_0, _1) {
+      return __async(this, arguments, function* (group, index, priority = MotionPriority.NORMAL) {
+        var _a;
+        if (!this.state.reserve(group, index, priority)) {
+          return false;
+        }
+        const definition = (_a = this.manager.definitions[group]) == null ? void 0 : _a[index];
+        if (!definition) {
+          return false;
+        }
+        const motion = yield this.manager.loadMotion(group, index);
+        if (!this.state.start(motion, group, index, priority)) {
+          return false;
+        }
+        logger.log(this.tag, "Start motion:", this.getMotionName(definition));
+        this.emit("motionStart", group, index, void 0);
+        this.playing = true;
+        this._startMotion(motion);
+        return true;
+      });
+    }
+    /**
+     * Starts a random Motion as given priority.
+     * @param group - The motion group.
+     * @param priority - The priority to be applied. (default: 1 `IDLE`)
+     * ### OPTIONAL: {name: value, ...}
+     * @param sound - The wav url file or base64 content+
+     * @param volume - Volume of the sound (0-1) (default: 1)
+     * @param expression - In case you want to mix up a expression while playing sound (name/index)
+     * @param resetExpression - Reset expression before and after playing sound (default: true)
+     * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
+     */
+    startRandomMotion(group, priority) {
+      return __async(this, null, function* () {
+        const groupDefs = this.manager.definitions[group];
+        if (groupDefs == null ? void 0 : groupDefs.length) {
+          const availableIndices = [];
+          for (let i = 0; i < groupDefs.length; i++) {
+            if (this.manager.motionGroups[group][i] !== null && !this.state.isActive(group, i)) {
+              availableIndices.push(i);
+            }
+          }
+          if (availableIndices.length) {
+            const index = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            return this.startMotion(group, index, priority);
+          }
+        }
+        return false;
+      });
+    }
+    /**
+     * Stops all playing motions as well as the sound.
+     */
+    stopAllMotions() {
+      this._stopAllMotions();
+      this.state.reset();
+    }
+    /**
+     * Updates parameters of the core model.
+     * @param model - The core model.
+     * @param now - Current time in milliseconds.
+     * @return True if the parameters have been actually updated.
+     */
+    update(model, now) {
+      if (this.isFinished()) {
+        if (this.playing) {
+          this.playing = false;
+          this.emit("motionFinish");
+        }
+        this.state.complete();
+      }
+      return this.updateParameters(model, now);
+    }
+    /**
+     * Destroys the instance.
+     * @emits {@link MotionManagerEvents.destroy}
+     */
+    destroy() {
+      this.destroyed = true;
+      this.emit("destroy");
+      this.stopAllMotions();
+    }
+  }
+  class Cubism2ParallelMotionManager extends ParallelMotionManager {
+    constructor(settings, manager) {
+      super(settings, manager);
+      __publicField(this, "queueManager", new MotionQueueManager());
+    }
+    isFinished() {
+      return this.queueManager.isFinished();
+    }
+    getMotionName(definition) {
+      return definition.file;
+    }
+    _startMotion(motion, onFinish) {
+      motion.onFinishHandler = onFinish;
+      this.queueManager.stopAllMotions();
+      return this.queueManager.startMotion(motion);
+    }
+    _stopAllMotions() {
+      this.queueManager.stopAllMotions();
+    }
+    updateParameters(model, now) {
+      return this.queueManager.updateParam(model);
+    }
+    destroy() {
+      super.destroy();
+      this.queueManager = void 0;
+    }
+  }
   class Live2DEyeBlink {
     constructor(coreModel) {
       __publicField(this, "leftParam");
@@ -2890,6 +3067,7 @@ var __async = (__this, __arguments, generator) => {
       __publicField(this, "settings");
       __publicField(this, "coreModel");
       __publicField(this, "motionManager");
+      __publicField(this, "parallelMotionManager");
       __publicField(this, "eyeBlink");
       // parameter indices, cached for better performance
       __publicField(this, "eyeballXParamIndex");
@@ -2915,6 +3093,7 @@ var __async = (__this, __arguments, generator) => {
       this.coreModel = coreModel;
       this.settings = settings;
       this.motionManager = new Cubism2MotionManager(settings, options);
+      this.parallelMotionManager = [];
       this.eyeBlink = new Live2DEyeBlink(coreModel);
       this.eyeballXParamIndex = coreModel.getParamIndex("PARAM_EYE_BALL_X");
       this.eyeballYParamIndex = coreModel.getParamIndex("PARAM_EYE_BALL_Y");
@@ -3035,7 +3214,9 @@ var __async = (__this, __arguments, generator) => {
       super.update(dt, now);
       const model = this.coreModel;
       this.emit("beforeMotionUpdate");
-      const motionUpdated = this.motionManager.update(this.coreModel, now);
+      const motionUpdated0 = this.motionManager.update(model, now);
+      const parallelMotionUpdated = this.parallelMotionManager.map((m) => m.update(model, now));
+      const motionUpdated = motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false);
       this.emit("afterMotionUpdate");
       model.saveParam();
       (_a = this.motionManager.expressionManager) == null ? void 0 : _a.update(model, now);
@@ -3103,6 +3284,11 @@ var __async = (__this, __arguments, generator) => {
       this.coreModel.draw();
       this.hasDrawn = true;
       this.disableCulling = disableCulling;
+    }
+    extendParallelMotionManager(managerCount) {
+      while (this.parallelMotionManager.length < managerCount) {
+        this.parallelMotionManager.push(new Cubism2ParallelMotionManager(this.settings, this.motionManager));
+      }
     }
     destroy() {
       super.destroy();
@@ -6061,6 +6247,40 @@ var __async = (__this, __arguments, generator) => {
       this.queueManager = void 0;
     }
   }
+  class Cubism4ParallelMotionManager extends ParallelMotionManager {
+    constructor(settings, manager) {
+      super(settings, manager);
+      __publicField(this, "queueManager", new CubismMotionQueueManager());
+      this.init();
+    }
+    init() {
+      this.queueManager.setEventCallback((caller, eventValue, customData) => {
+        this.emit("motion:" + eventValue);
+      });
+    }
+    isFinished() {
+      return this.queueManager.isFinished();
+    }
+    _startMotion(motion, onFinish) {
+      motion.setFinishedMotionHandler(onFinish);
+      this.queueManager.stopAllMotions();
+      return this.queueManager.startMotion(motion, false, performance.now());
+    }
+    _stopAllMotions() {
+      this.queueManager.stopAllMotions();
+    }
+    updateParameters(model, now) {
+      return this.queueManager.doUpdateMotion(model, now);
+    }
+    getMotionName(definition) {
+      return definition.File;
+    }
+    destroy() {
+      super.destroy();
+      this.queueManager.release();
+      this.queueManager = void 0;
+    }
+  }
   const ParamAngleX = "ParamAngleX";
   const ParamAngleY = "ParamAngleY";
   const ParamAngleZ = "ParamAngleZ";
@@ -8265,6 +8485,7 @@ var __async = (__this, __arguments, generator) => {
       __publicField(this, "settings");
       __publicField(this, "coreModel");
       __publicField(this, "motionManager");
+      __publicField(this, "parallelMotionManager");
       __publicField(this, "lipSync", true);
       __publicField(this, "breath", CubismBreath.create());
       __publicField(this, "eyeBlink");
@@ -8292,6 +8513,7 @@ var __async = (__this, __arguments, generator) => {
       this.coreModel = coreModel;
       this.settings = settings;
       this.motionManager = new Cubism4MotionManager(settings, options);
+      this.parallelMotionManager = [];
       this.init();
     }
     init() {
@@ -8383,7 +8605,9 @@ var __async = (__this, __arguments, generator) => {
       now /= 1e3;
       const model = this.coreModel;
       this.emit("beforeMotionUpdate");
-      const motionUpdated = this.motionManager.update(this.coreModel, now);
+      const motionUpdated0 = this.motionManager.update(model, now);
+      const parallelMotionUpdated = this.parallelMotionManager.map((m) => m.update(model, now));
+      const motionUpdated = motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false);
       this.emit("afterMotionUpdate");
       model.saveParameters();
       (_a = this.motionManager.expressionManager) == null ? void 0 : _a.update(model, now);
@@ -8441,6 +8665,11 @@ var __async = (__this, __arguments, generator) => {
       this.renderer.setMvpMatrix(tempMatrix);
       this.renderer.setRenderState(gl.getParameter(gl.FRAMEBUFFER_BINDING), this.viewport);
       this.renderer.drawModel();
+    }
+    extendParallelMotionManager(managerCount) {
+      while (this.parallelMotionManager.length < managerCount) {
+        this.parallelMotionManager.push(new Cubism4ParallelMotionManager(this.settings, this.motionManager));
+      }
     }
     destroy() {
       super.destroy();

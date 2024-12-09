@@ -42,6 +42,12 @@ export default defineConfig(({ command, mode }) => {
         },
         server: {
             open: !isTest && "/playground/index.html",
+            proxy: {
+                "/model": {
+                    target: "http://localhost:8000",
+                    changeOrigin: true,
+                },
+            },
         },
         build: {
             target: "es6",

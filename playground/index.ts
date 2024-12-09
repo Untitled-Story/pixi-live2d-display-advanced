@@ -4,40 +4,40 @@
 import { Application, Ticker } from "pixi.js";
 import { Live2DModel } from "../src";
 
-Live2DModel.registerTicker(Ticker);
-
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const modelURL =
-    "https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/Senko_Normals/senko.model3.json";
+canvas.width = 800;
+canvas.height = 600;
+const modelURL = "/model/21miku_night/21miku_night.model3.json";
 
 async function main() {
     const app = new Application({
-        resizeTo: window,
         view: canvas,
     });
     (window as any).app = app;
 
-    const model = await Live2DModel.from(modelURL);
+    const model = await Live2DModel.from(modelURL, {
+        ticker: Ticker.shared,
+        autoFocus: false,
+    });
 
     app.stage.addChild(model);
+    model.scale.set(0.2);
 }
 
 main().then();
 
-function checkbox(name: string, onChange: (checked: boolean) => void) {
-    const id = name.replace(/\W/g, "").toLowerCase();
+const control = document.getElementById("control")!;
+control.innerHTML += `
+<button onclick="window.click()">go!</button>
+`;
 
-    document.getElementById("control")!.innerHTML += `
-<p>
-  <input type="checkbox" id="${id}">
-  <label for="${id}">${name}</label>
-</p>`;
-
-    const checkbox = document.getElementById(id) as HTMLInputElement;
-
-    checkbox.addEventListener("change", (ev) => {
-        onChange(checkbox.checked);
-    });
-
-    onChange(checkbox.checked);
+function click() {
+    const app = (window as any).app as Application;
+    const model = app.stage.getChildAt(0) as Live2DModel;
+    model.parallelMotion([
+        { group: "w-adult-nod02", index: 0 },
+        { group: "face_night_closeeye_01", index: 0 },
+    ]);
 }
+
+(window as any).click = click;
