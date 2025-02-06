@@ -82,7 +82,7 @@ var __async = (__this, __arguments, generator) => {
     preserveExpressionOnMotion: true,
     cubism4: CubismConfig
   };
-  const VERSION = "v0.5.0-mm-4";
+  const VERSION = "v0.5.0-mm-5";
   const logger = {
     log(tag, ...messages) {
       if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
@@ -10980,7 +10980,8 @@ var __async = (__this, __arguments, generator) => {
     release() {
       var _a, _b, _c;
       const self2 = this;
-      this._clippingManager.release();
+      if (this._clippingManager)
+        this._clippingManager.release();
       self2._clippingManager = void 0;
       (_a = this.gl) == null ? void 0 : _a.deleteBuffer(this._bufferData.vertex);
       this._bufferData.vertex = null;

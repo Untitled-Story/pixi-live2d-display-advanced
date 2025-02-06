@@ -82,7 +82,7 @@ var __async = (__this, __arguments, generator) => {
     preserveExpressionOnMotion: true,
     cubism4: CubismConfig
   };
-  const VERSION = "v0.5.0-mm-4";
+  const VERSION = "v0.5.0-mm-5";
   const logger = {
     log(tag, ...messages) {
       if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
