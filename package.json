@@ -1,6 +1,6 @@
 {
   "name": "pixi-live2d-display-mulmotion",
-  "version": "v0.5.0-mm-3",
+  "version": "v0.5.0-mm-4",
   "description": "Live2D plugin for PixiJS (with lipsync patch (with multi-motion))",
   "main": "dist/index.js",
   "type": "module",
