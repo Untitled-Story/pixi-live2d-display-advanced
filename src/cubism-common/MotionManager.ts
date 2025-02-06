@@ -256,8 +256,6 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
         let soundURL: string | undefined;
         const isBase64Content = sound && sound.startsWith("data:");
 
-        console.log(onFinish)
-
         if (sound && !isBase64Content) {
             const A = document.createElement("a");
             A.href = sound;
@@ -274,7 +272,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
                 audio = SoundManager.add(
                     file,
                     (that = this) => {
-                        console.log('Audio finished playing'); // Add this line
+                        logger.warn(this.tag, "Audio finished playing");
                         onFinish?.();
                         resetExpression &&
                             expression &&
@@ -283,7 +281,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
                         that.currentAudio = undefined;
                     }, // reset expression when audio is done
                     (e, that = this) => {
-                        console.log('Error during audio playback:', e); // Add this line
+                        logger.error(this.tag, "Error during audio playback:", e);
                         onError?.(e);
                         resetExpression &&
                             expression &&
