@@ -26,6 +26,7 @@ Live2D models on a high level without the need to learn how the internal system 
 - Fully typed - we all love types!
 - Live Lipsync
 - Play multiple motions simultaneously
+- Play last frame of a motion
 
 #### Requirements
 
@@ -142,6 +143,28 @@ model.parallelMotion([
 
 If you need to synchronize the playback of expressions and sounds, please use`model.motion`/`model.speak` to play one of the motions, and use `model.parallelMotion` to play the remaining motions. Each item in the motion list has independent priority control based on its index, consistent with the priority logic of `model.motion`.
 
+## How to play the last frame
+
+I add a function `async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>` in
+the `Cubism4ParallelMotionManager`, so it only supports the Cubism4 Models.
+
+You can play it in this way:
+
+```ts
+const manager = model.internalModel.parallelMotionManager[0]!;
+if (manager instanceof Cubism4ParallelMotionManager) {
+    await (manager as Cubism4ParallelMotionManager).playMotionLastFrame(
+        model,
+        "w-cute12-tilthead",
+        0,
+    );
+    console.info(manager.isFinished()); // It will give a true.
+} else {
+    throw new Error("No Cubism4 Model");
+}
+```
+
+and in the future, this project will be reformed.
 
 # See here for more Documentation: [Documentation](https://guansss.github.io/pixi-live2d-display/)
 

@@ -1,7 +1,7 @@
 {
-  "name": "pixi-live2d-display-mulmotion",
-  "version": "v0.5.0-mm-5",
-  "description": "Live2D plugin for PixiJS (with lipsync patch (with multi-motion))",
+  "name": "pixi-live2d-display-advanced",
+  "version": "v0.1.0",
+  "description": "Live2D plugin for PixiJS (with lipsync, multi-motion and play the last frame of a motion)",
   "main": "dist/index.js",
   "type": "module",
   "exports": {
@@ -28,9 +28,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/K-bai/pixi-live2d-display.git"
+    "url": "https://github.com/GuangChen2333/pixi-live2d-display-advanced.git"
   },
-  "author": "K-bai <kongbaiyo@live.cn>",
+  "author": "GuangChen2333 <guangchen2333>",
   "license": "MIT",
   "scripts": {
     "setup": "node scripts/setup.js",
@@ -74,7 +74,7 @@
     "jest-image-snapshot": "^6.2.0",
     "jszip": "^3.10.0",
     "lodash-es": "^4.17.21",
-    "pixi.js": "^7.3.2",
+    "pixi.js": "^7.4.3",
     "prettier": "^3.0.3",
     "rimraf": "^3.0.2",
     "type-fest": "^4.4.0",

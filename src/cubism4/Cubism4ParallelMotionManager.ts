@@ -7,10 +7,13 @@ import { CubismMotion } from "@cubism/motion/cubismmotion";
 import { CubismMotionQueueManager } from "@cubism/motion/cubismmotionqueuemanager";
 import type { Mutable } from "../types/helpers";
 import type { MotionManager } from "@/cubism-common/MotionManager";
+import { Live2DModel } from "@/Live2DModel";
+import { MotionPriority } from "@/cubism-common";
 
-import { logger } from "@/utils";
-
-export class Cubism4ParallelMotionManager extends ParallelMotionManager<CubismMotion, CubismSpec.Motion> {
+export class Cubism4ParallelMotionManager extends ParallelMotionManager<
+    CubismMotion,
+    CubismSpec.Motion
+> {
     readonly queueManager = new CubismMotionQueueManager();
 
     declare readonly settings: Cubism4ModelSettings;
@@ -58,5 +61,50 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<CubismMo
 
         this.queueManager.release();
         (this as Partial<Mutable<this>>).queueManager = undefined;
+    }
+
+    async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean> {
+        if (!this.state.reserve(group, index, MotionPriority.FORCE)) {
+            return false;
+        }
+
+        const definition = this.manager.definitions[group]?.[index];
+        if (!definition) {
+            return false;
+        }
+
+        const motion = await this.manager.loadMotion(group, index);
+        if (!this.state.start(motion, group, index, MotionPriority.FORCE)) {
+            return false;
+        }
+
+        this.emit("motionStart", group, index, undefined);
+
+        this.playing = true;
+
+        this.queueManager.stopAllMotions();
+
+        const motionQueueEntryHandle = this.queueManager.startMotion(
+            motion,
+            false,
+            performance.now(),
+        );
+
+        const motionQueueEntry =
+            this.queueManager.getCubismMotionQueueEntry(motionQueueEntryHandle)!;
+
+        const duration = motion.getDuration();
+        const currentTime = motionQueueEntry.getStartTime() + duration;
+
+        motion.doUpdateParameters(
+            model.internalModel.coreModel,
+            currentTime,
+            1.0,
+            motionQueueEntry,
+        );
+        motionQueueEntry.setIsFinished(true);
+        this.playing = false;
+
+        return true;
     }
 }
