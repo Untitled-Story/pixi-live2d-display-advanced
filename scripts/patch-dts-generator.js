@@ -1,4 +1,7 @@
-import dtsPackageJson from "dts-bundle-generator/package.json" assert { type: "json" };
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const dtsPackageJson = require("dts-bundle-generator/package.json");
 import { readFileSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";

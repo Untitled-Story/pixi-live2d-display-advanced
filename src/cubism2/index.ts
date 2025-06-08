@@ -5,6 +5,7 @@ export * from "./Cubism2ExpressionManager";
 export * from "./Cubism2InternalModel";
 export * from "./Cubism2ModelSettings";
 export * from "./Cubism2MotionManager";
+export * from "./Cubism2ParallelMotionManager";
 export * from "./Live2DExpression";
 export * from "./Live2DEyeBlink";
 export * from "./Live2DPhysics";

@@ -90,20 +90,20 @@ To make it clear, here's how you would use these files:
 #### Via npm
 
 ```sh
-npm install pixi-live2d-display-mulmotion
+npm install pixi-live2d-display-advanced
 ```
 
 ```js
-import { Live2DModel } from 'pixi-live2d-display-mulmotion';
-// or import { Live2DModel } from 'pixi-live2d-display-mulmotion'; // i didn't test this
+import { Live2DModel } from 'pixi-live2d-display-advanced';
+// or import { Live2DModel } from 'pixi-live2d-display-advanced'; // i didn't test this
 
 // if only Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2';
-// or import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2';
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2';
+// or import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2';
 
 // if only Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4';
-// or import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4';
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4';
+// or import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4';
 ```
 
 #### Via CDN (lipsync patched / mulmotion not added)
