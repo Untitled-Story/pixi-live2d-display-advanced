@@ -1,4 +1,4 @@
-# pixi-live2d-display
+# pixi-live2d-display-advanced
 
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/guansss/pixi-live2d-display?style=flat-square)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
@@ -10,7 +10,9 @@ Live2D integration for [PixiJS](https://github.com/pixijs/pixi.js) v7.
 
 This project aims to be a universal Live2D framework on the web platform. While the official Live2D framework is just
 complex and problematic, this project has rewritten it to unify and simplify the APIs, which allows you to control the
-Live2D models on a high level without the need to learn how the internal system works.
+Live2D models on a high level without the need to learn how the internal system works. By modifying doUpdateParameters()
+to the end time of the motion, the action process can be skipped to obtain the final frame. In
+[MySekaiStoryteller](https://github.com/GuangChen2333/MySekaiStoryteller), executing each action can save two seconds.
 
 #### Feel free to support the Maintainer:
 <a href="https://www.buymeacoffee.com/RaSan147" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
