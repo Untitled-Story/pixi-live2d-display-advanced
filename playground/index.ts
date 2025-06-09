@@ -1,50 +1,32 @@
-// run this to tell git not to track this file
-// git update-index --skip-worktree test/playground/index.ts
+import * as PIXI from 'pixi.js'
+import { Live2DModel } from '../src'
 
-import { Application, Ticker } from "pixi.js";
-import { Live2DModel } from "../src";
-import { config } from "../src/config";
+const applicationWrapper = document.getElementById('app')! as HTMLDivElement
 
-config.fftSize = 8192;
+const pixiApplication = new PIXI.Application({
+  background: 0xffffff,
+  resizeTo: applicationWrapper,
+  autoDensity: true,
+  antialias: true,
+  resolution: window.devicePixelRatio || 1
+})
+applicationWrapper.appendChild(pixiApplication.view as HTMLCanvasElement)
 
-const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-canvas.width = 800;
-canvas.height = 600;
-const modelURL = "/model/21miku_night/21miku_night.model3.json";
+pixiApplication.stage.sortableChildren = true
 
-async function main() {
-    const app = new Application({
-        view: canvas,
-    });
-    (window as any).app = app;
+const model = await Live2DModel.from(
+  'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json',
+  {
+    ticker: PIXI.Ticker.shared,
+    autoFocus: false,
+    autoHitTest: false,
+    breathDepth: 0.2
+  }
+)
+model.internalModel.extendParallelMotionManager(2)
 
-    const model = await Live2DModel.from(modelURL, {
-        ticker: Ticker.shared,
-        autoFocus: false,
-        breathDepth: 0.2
-    });
-
-    app.stage.addChild(model);
-    model.scale.set(0.2);
-}
-
-main().then();
-
-const control = document.getElementById("control")!;
-control.innerHTML += `
-<button onclick="window.click()">go!</button>
-`;
-
-function click() {
-    const app = (window as any).app as Application;
-    const model = app.stage.getChildAt(0) as Live2DModel;
-    model.parallelMotion([
-        { group: "w-adult-nod02", index: 0 },
-        { group: "face_night_closeeye_01", index: 0 },
-    ]);
-    model.speak("/minio/voice_ev_shuffle_37_01_14_10.mp3", {
-        resetExpression: false,
-    });
-}
-
-(window as any).click = click;
+pixiApplication.stage.addChild(model)
+model.scale.set(0.2)
+model.x = pixiApplication.screen.width / 2
+model.y = pixiApplication.screen.height / 1.6
+model.anchor.set(0.5)
