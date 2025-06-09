@@ -4,12 +4,12 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 const overwriteExisting = true
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const coreDir = resolve(__dirname, '../core') + '/'
+const _dirname = dirname(fileURLToPath(import.meta.url))
+const coreDir = resolve(_dirname, '../core') + '/'
 
 const assets = [
   {
-    url: 'http://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+    url: 'https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
     file: coreDir + 'live2d.min.js'
   },
   {
@@ -22,6 +22,10 @@ const assets = [
       {
         entryFile: 'CubismSdkForWeb-4-r.7/Core/live2dcubismcore.d.ts',
         outputFile: coreDir + 'live2dcubismcore.d.ts'
+      },
+      {
+        entryFile: 'CubismSdkForWeb-4-r.7/Core/live2dcubismcore.js.map',
+        outputFile: coreDir + 'live2dcubismcore.js.map'
       }
     ]
   }

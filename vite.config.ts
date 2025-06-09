@@ -25,7 +25,7 @@ if (!existsSync(cubism2Core) || !existsSync(cubism4Core)) {
 export default defineConfig(({ command, mode }) => {
   const isDev = command === 'serve'
   const isTest = mode === 'test'
-
+  // noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
   return {
     define: {
       __DEV__: isDev,
@@ -60,7 +60,8 @@ export default defineConfig(({ command, mode }) => {
         name: 'PIXI.live2d'
       },
       rollupOptions: {
-        external(id, parentId, isResolved) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        external: (id, _parentId, _isResolved) => {
           if (id === 'pixi.js') {
             throw new Error('do not import pixi.js, import @pixi/* instead')
           }
@@ -117,10 +118,15 @@ export default defineConfig(({ command, mode }) => {
             const bundleTestFiles: typeof files = []
 
             files = files.filter(([project, file]) => {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               if (file.includes('bundle')) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 bundleTestFiles.push([project, file])
                 return false
               }
+
               return true
             })
 

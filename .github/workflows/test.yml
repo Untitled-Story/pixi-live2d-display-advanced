@@ -35,14 +35,14 @@ jobs:
           path: |
             core/*
             !core/live2d.d.ts
-          key: ${{ hashFiles('scripts/setup.js') }}
+          key: ${{ hashFiles('scripts/setup.mjs') }}
 
       - run: npm ci
 
       - name: Set up core files
         if: steps.cache-core.outputs.cache-hit != 'true'
         run: |
-          echo Cache miss: ${{ hashFiles('scripts/setup.js') }}
+          echo Cache miss: ${{ hashFiles('scripts/setup.mjs') }}
           npm run setup
 
       - run: npm run type

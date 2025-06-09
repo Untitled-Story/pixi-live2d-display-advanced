@@ -33,7 +33,7 @@
   "author": "GuangChen2333 <guangchen2333>",
   "license": "MIT",
   "scripts": {
-    "setup": "node scripts/setup.js",
+    "setup": "node scripts/setup.mjs",
     "playground": "vite",
     "test": "vitest",
     "test:u": "vitest --update",
