@@ -4,7 +4,8 @@ import type { MotionManager, MotionManagerOptions } from '@/cubism-common/Motion
 import type { ParallelMotionManager } from '@/cubism-common/ParallelMotionManager'
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '@/cubism-common/constants'
 import { Matrix, utils } from '@pixi/core'
-import type { Mutable } from '../types/helpers'
+import type { Mutable } from '@/types/helpers'
+import type { CubismMotion } from '@cubism/motion/cubismmotion'
 
 /**
  * Common layout definition shared between all Cubism versions.
@@ -65,10 +66,10 @@ export abstract class InternalModel extends utils.EventEmitter {
   focusController = new FocusController()
 
   abstract motionManager: MotionManager
-  abstract parallelMotionManager: ParallelMotionManager[]
+  abstract parallelMotionManager: ParallelMotionManager<Live2DMotion | CubismMotion>[]
 
-  pose?: any
-  physics?: any
+  pose?: unknown
+  physics?: unknown
 
   /**
    * Original canvas width of the model. Note this doesn't represent the model's real size,
@@ -264,9 +265,10 @@ export abstract class InternalModel extends utils.EventEmitter {
   /**
    * Updates the model's parameters.
    * @param dt - Elapsed time in milliseconds from last frame.
-   * @param now - Current time in milliseconds.
+   * @param _now - Current time in milliseconds.
    */
-  update(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  update(dt: DOMHighResTimeStamp, _now: DOMHighResTimeStamp): void {
     this.focusController.update(dt)
   }
 
