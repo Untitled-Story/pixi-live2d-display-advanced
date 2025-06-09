@@ -90,6 +90,11 @@ Changes to this file should _not_ be committed to git. You can run this command 
 git update-index --skip-worktree playground/index.ts
 ```
 
+Cancel Mark
+```sh
+git update-index --no-skip-worktree playground/index.ts
+```
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request if you have any ideas or suggestions.
