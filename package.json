@@ -37,7 +37,7 @@
     "playground": "vite",
     "test": "vitest",
     "test:u": "vitest --update",
-    "build": "rimraf dist && node scripts/build.js",
+    "build": "rimraf dist && node scripts/build.mjs",
     "pretype": "node scripts/patch-dts-generator.js",
     "type": "rimraf types && dts-bundle-generator src/index.ts --no-check --project=tsconfig.build.json -o=types/index.d.ts && dts-bundle-generator src/extra.ts --no-check --project=tsconfig.build.json -o=types/extra.d.ts ",
     "posttype": "node scripts/patch-types.js",
@@ -57,12 +57,14 @@
     "pixi.js": "^7.0.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^20.8.9",
     "@types/offscreencanvas": "^2019.7.3",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
-    "@vitest/browser": "^1.4.0",
+    "@vitest/browser": "^3.2.2",
     "birpc": "^0.2.17",
     "dts-bundle-generator": "^6.11.0",
     "eslint": "^9.28.0",
@@ -70,21 +72,22 @@
     "eslint-plugin-prettier": "^5.4.1",
     "gh-pages": "^6.1.0",
     "glob": "^8.0.3",
+    "globals": "^14.0.0",
     "handlebars": "^4.7.7",
     "jest-image-snapshot": "^6.2.0",
     "jszip": "^3.10.0",
     "lodash-es": "^4.17.21",
-    "pixi.js": "^7.4.3",
     "prettier": "^3.5.3",
     "rimraf": "^3.0.2",
+    "terser": "^5.30.3",
     "type-fest": "^4.4.0",
     "typescript": "^5.2.2",
-    "vite": "^5.0.0",
-    "vite-plugin-node-polyfills": "^0.17.0",
-    "vitest": "^1.4.0",
+    "vite": "^6.3.5",
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "vitest": "^3.2.2",
     "webdriverio": "^8.34.1"
   },
   "dependencies": {
-    "terser": "^5.30.3"
+    "pixi.js": "^7.0.0"
   }
 }

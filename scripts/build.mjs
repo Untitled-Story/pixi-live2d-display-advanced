@@ -2,7 +2,7 @@ import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'
 import { build } from 'vite'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const _dirname = dirname(fileURLToPath(import.meta.url))
 
 const entries = [
   { entry: 'src/csm2.ts', name: 'cubism2' },
@@ -14,11 +14,12 @@ const entries = [
 const profiles = entries.flatMap(({ entry, name }) =>
   [false, true].map((minify) => ({
     build: {
+      outDir: resolve(_dirname, '../dist'),
       emptyOutDir: false,
-      minify: minify && 'terser',
+      minify: minify ? 'terser' : false,
       lib: {
         formats: minify ? ['umd'] : ['es', 'umd'],
-        entry: resolve(__dirname, '..', entry),
+        entry: resolve(_dirname, '..', entry),
         fileName: (format) =>
           `${name}${format === 'umd' ? (minify ? '.min' : '') : '.' + format}.js`
       }
@@ -28,10 +29,12 @@ const profiles = entries.flatMap(({ entry, name }) =>
 
 async function main() {
   for (const profile of profiles) {
-    console.log('\n' + `Building profile: ${profile.build.lib.fileName('umd')}`)
+    console.log(`\n🚀 Building: ${profile.build.lib.entry} → ${profile.build.outDir}`)
+    console.log(`   Format: ${profile.build.lib.formats.join(', ')}`)
+    console.log(`   Minify: ${!!profile.build.minify}\n`)
 
     await build(profile)
   }
 }
 
-main()
+await main()
