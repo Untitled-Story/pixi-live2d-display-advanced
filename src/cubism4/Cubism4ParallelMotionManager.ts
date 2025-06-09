@@ -5,7 +5,7 @@ import type { CubismModel } from '@cubism/model/cubismmodel'
 import type { ACubismMotion } from '@cubism/motion/acubismmotion'
 import type { CubismMotion } from '@cubism/motion/cubismmotion'
 import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanager'
-import type { Mutable } from '../types/helpers'
+import type { Mutable } from '@/types/helpers'
 import type { MotionManager } from '@/cubism-common/MotionManager'
 import type { Live2DModel } from '@/Live2DModel'
 import { MotionPriority } from '@/cubism-common'
@@ -25,7 +25,8 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
   }
 
   protected init() {
-    this.queueManager.setEventCallback((caller, eventValue, customData) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.queueManager.setEventCallback((_caller, eventValue, _customData) => {
       this.emit('motion:' + eventValue)
     })
   }

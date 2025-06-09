@@ -1,17 +1,19 @@
+// noinspection JSCommentMatchesSignature,JSUnusedGlobalSymbols
+
 import type { MotionManager } from '@/cubism-common/MotionManager'
 import type { ModelSettings } from '@/cubism-common/ModelSettings'
 import { MotionPriority, MotionState } from '@/cubism-common/MotionState'
 import { logger } from '@/utils'
 import { utils } from '@pixi/core'
-import type { Mutable } from '../types/helpers'
+import type { Live2DModel } from '@/Live2DModel'
 
 /**
  * Handles the motion playback.
  * @emits {@link MotionManagerEvents}
  */
 export abstract class ParallelMotionManager<
-  Motion = any,
-  MotionSpec = any
+  Motion = never,
+  MotionSpec = never
 > extends utils.EventEmitter {
   /**
    * Tag for logging.
@@ -56,7 +58,7 @@ export abstract class ParallelMotionManager<
    * ### OPTIONAL: {name: value, ...}
    * @param sound - The audio url to file or base64 content
    * @param volume - Volume of the sound (0-1)
-   * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
+   * @param expression - In case you want to mix up an expression while playing sound (bind with Model.expression())
    * @param resetExpression - Reset expression before and after playing sound (default: true)
    * @param crossOrigin - Cross origin setting.
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
@@ -98,7 +100,7 @@ export abstract class ParallelMotionManager<
    * ### OPTIONAL: {name: value, ...}
    * @param sound - The wav url file or base64 content+
    * @param volume - Volume of the sound (0-1) (default: 1)
-   * @param expression - In case you want to mix up a expression while playing sound (name/index)
+   * @param expression - In case you want to mix up an expression while playing sound (name/index)
    * @param resetExpression - Reset expression before and after playing sound (default: true)
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
@@ -160,8 +162,6 @@ export abstract class ParallelMotionManager<
     this.emit('destroy')
 
     this.stopAllMotions()
-
-    const self = this as Mutable<Partial<this>>
   }
 
   /**
@@ -192,4 +192,6 @@ export abstract class ParallelMotionManager<
    * @return True if the parameters have been actually updated.
    */
   protected abstract updateParameters(model: object, now: DOMHighResTimeStamp): boolean
+
+  abstract playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>
 }

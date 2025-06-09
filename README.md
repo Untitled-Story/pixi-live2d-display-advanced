@@ -11,8 +11,8 @@ Live2D integration for [PixiJS](https://github.com/pixijs/pixi.js) v7.
 This project aims to be a universal Live2D framework on the web platform. While the official Live2D framework is just
 complex and problematic, this project has rewritten it to unify and simplify the APIs, which allows you to control the
 Live2D models on a high level without the need to learn how the internal system works. By modifying doUpdateParameters()
-to the end time of the motion, the action process can be skipped to obtain the final frame. In
-[MySekaiStoryteller](https://github.com/GuangChen2333/MySekaiStoryteller), executing each action can save two seconds.
+to the end time of the motion, the motion process can be skipped to obtain the final frame. In
+[MySekaiStoryteller](https://github.com/GuangChen2333/MySekaiStoryteller), executing each motion can save two seconds.
 
 #### Feel free to support the Maintainer:
 
@@ -146,19 +146,17 @@ If you need to synchronize the playback of expressions and sounds, please use`mo
 
 ## How to play the last frame
 
-I add a function `async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>` in
-the `Cubism4ParallelMotionManager`, so it only supports the Cubism4 Models.
+I add a function `async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>` ~~in
+the `Cubism4ParallelMotionManager`, so it only supports the Cubism4 Models.~~
+
+In the version v0.2.0 and later, this function has been added to both Cubism 2 and Cubism 4, but it may not run stably in Cubism 2.
 
 You can play it in this way:
 
 ```ts
 const manager = model.internalModel.parallelMotionManager[0]!
-if (manager instanceof Cubism4ParallelMotionManager) {
-  await (manager as Cubism4ParallelMotionManager).playMotionLastFrame(model, 'w-cute12-tilthead', 0)
-  console.info(manager.isFinished()) // It will give a true.
-} else {
-  throw new Error('No Cubism4 Model')
-}
+await manager.playMotionLastFrame(model, 'w-cute12-tilthead', 0)
+console.info(manager.isFinished()) // It will give a true.
 ```
 
 and in the future, this project will be reformed.
