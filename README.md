@@ -15,6 +15,7 @@ to the end time of the motion, the action process can be skipped to obtain the f
 [MySekaiStoryteller](https://github.com/GuangChen2333/MySekaiStoryteller), executing each action can save two seconds.
 
 #### Feel free to support the Maintainer:
+
 <a href="https://www.buymeacoffee.com/RaSan147" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 #### Features
@@ -96,27 +97,25 @@ npm install pixi-live2d-display-advanced
 ```
 
 ```js
-import { Live2DModel } from 'pixi-live2d-display-advanced';
+import { Live2DModel } from 'pixi-live2d-display-advanced'
 // or import { Live2DModel } from 'pixi-live2d-display-advanced'; // i didn't test this
 
 // if only Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2';
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2'
 // or import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2';
 
 // if only Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4';
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
 // or import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4';
 ```
 
 #### Via CDN (lipsync patched / mulmotion not added)
 
 ```html
-
 <!-- Load Cubism and PixiJS -->
 <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
-
 
 <!-- if support for both Cubism 2.1 and 4 -->
 <script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-7/dist/index.min.js"></script>
@@ -138,9 +137,9 @@ See here for basic usage: [pixi-live2d-display-lipsync](https://github.com/RaSan
 
 ```ts
 model.parallelMotion([
-  {group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL},
-  {group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL},
-]);
+  { group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL },
+  { group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL }
+])
 ```
 
 If you need to synchronize the playback of expressions and sounds, please use`model.motion`/`model.speak` to play one of the motions, and use `model.parallelMotion` to play the remaining motions. Each item in the motion list has independent priority control based on its index, consistent with the priority logic of `model.motion`.
@@ -153,21 +152,15 @@ the `Cubism4ParallelMotionManager`, so it only supports the Cubism4 Models.
 You can play it in this way:
 
 ```ts
-const manager = model.internalModel.parallelMotionManager[0]!;
+const manager = model.internalModel.parallelMotionManager[0]!
 if (manager instanceof Cubism4ParallelMotionManager) {
-    await (manager as Cubism4ParallelMotionManager).playMotionLastFrame(
-        model,
-        "w-cute12-tilthead",
-        0,
-    );
-    console.info(manager.isFinished()); // It will give a true.
+  await (manager as Cubism4ParallelMotionManager).playMotionLastFrame(model, 'w-cute12-tilthead', 0)
+  console.info(manager.isFinished()) // It will give a true.
 } else {
-    throw new Error("No Cubism4 Model");
+  throw new Error('No Cubism4 Model')
 }
 ```
 
 and in the future, this project will be reformed.
 
 # See here for more Documentation: [Documentation](https://guansss.github.io/pixi-live2d-display/)
-
-

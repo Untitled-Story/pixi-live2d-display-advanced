@@ -1,283 +1,283 @@
-import { logger } from "@/utils";
-import { config } from "../config";
+import { logger } from '@/utils'
+import { config } from '../config'
 
 /**
  * Indicates the motion priority.
  */
 export enum MotionPriority {
-    /** States that the model is currently not playing any motion. This priority cannot be applied to a motion. */
-    NONE,
+  /** States that the model is currently not playing any motion. This priority cannot be applied to a motion. */
+  NONE,
 
-    /** Low priority, used when starting idle motions automatically. */
-    IDLE,
+  /** Low priority, used when starting idle motions automatically. */
+  IDLE,
 
-    /** Medium priority. */
-    NORMAL,
+  /** Medium priority. */
+  NORMAL,
 
-    /** High priority. Motions as this priority will always be played regardless of the current priority. */
-    FORCE,
+  /** High priority. Motions as this priority will always be played regardless of the current priority. */
+  FORCE
 }
 
 /**
  * Handles the state of a MotionManager.
  */
 export class MotionState {
-    /**
-     * Tag for logging.
-     */
-    tag!: string;
+  /**
+   * Tag for logging.
+   */
+  tag!: string
 
-    /**
-     * When enabled, the states will be dumped to the logger when an exception occurs.
-     */
-    debug = false;
+  /**
+   * When enabled, the states will be dumped to the logger when an exception occurs.
+   */
+  debug = false
 
-    /**
-     * Priority of the current motion. Will be `MotionPriority.NONE` if there's no playing motion.
-     */
-    currentPriority = MotionPriority.NONE;
+  /**
+   * Priority of the current motion. Will be `MotionPriority.NONE` if there's no playing motion.
+   */
+  currentPriority = MotionPriority.NONE
 
-    /**
-     * Priority of the reserved motion, which is still in loading and will be played once loaded.
-     * Will be `MotionPriority.NONE` if there's no reserved motion.
-     */
-    reservePriority = MotionPriority.NONE;
+  /**
+   * Priority of the reserved motion, which is still in loading and will be played once loaded.
+   * Will be `MotionPriority.NONE` if there's no reserved motion.
+   */
+  reservePriority = MotionPriority.NONE
 
-    /**
-     * Group of current motion.
-     */
-    currentGroup?: string;
+  /**
+   * Group of current motion.
+   */
+  currentGroup?: string
 
-    /**
-     * Index of current motion in its group.
-     */
-    currentIndex?: number;
+  /**
+   * Index of current motion in its group.
+   */
+  currentIndex?: number
 
-    /**
-     * Group of the reserved motion.
-     */
-    reservedGroup?: string;
+  /**
+   * Group of the reserved motion.
+   */
+  reservedGroup?: string
 
-    /**
-     * Index of the reserved motion in its group.
-     */
-    reservedIndex?: number;
+  /**
+   * Index of the reserved motion in its group.
+   */
+  reservedIndex?: number
 
-    /**
-     * Group of the reserved idle motion.
-     */
-    reservedIdleGroup?: string;
+  /**
+   * Group of the reserved idle motion.
+   */
+  reservedIdleGroup?: string
 
-    /**
-     * Index of the reserved idle motion in its group.
-     */
-    reservedIdleIndex?: number;
+  /**
+   * Index of the reserved idle motion in its group.
+   */
+  reservedIdleIndex?: number
 
-    /**
-     * Reserves the playback for a motion.
-     * @param group - The motion group.
-     * @param index - Index in the motion group.
-     * @param priority - The priority to be applied.
-     * @return True if the reserving has succeeded.
-     */
-    reserve(group: string, index: number, priority: MotionPriority): boolean {
-        if (priority <= MotionPriority.NONE) {
-            logger.log(this.tag, `Cannot start a motion with MotionPriority.NONE.`);
-            return false;
+  /**
+   * Reserves the playback for a motion.
+   * @param group - The motion group.
+   * @param index - Index in the motion group.
+   * @param priority - The priority to be applied.
+   * @return True if the reserving has succeeded.
+   */
+  reserve(group: string, index: number, priority: MotionPriority): boolean {
+    if (priority <= MotionPriority.NONE) {
+      logger.log(this.tag, `Cannot start a motion with MotionPriority.NONE.`)
+      return false
+    }
+
+    if (group === this.currentGroup && index === this.currentIndex) {
+      logger.log(this.tag, `Motion is already playing.`, this.dump(group, index))
+      return false
+    }
+
+    if (
+      (group === this.reservedGroup && index === this.reservedIndex) ||
+      (group === this.reservedIdleGroup && index === this.reservedIdleIndex)
+    ) {
+      logger.log(this.tag, `Motion is already reserved.`, this.dump(group, index))
+      return false
+    }
+
+    if (priority === MotionPriority.IDLE) {
+      if (this.currentPriority !== MotionPriority.NONE) {
+        logger.log(
+          this.tag,
+          `Cannot start idle motion because another motion is playing.`,
+          this.dump(group, index)
+        )
+        return false
+      }
+
+      if (this.reservedIdleGroup !== undefined) {
+        logger.log(
+          this.tag,
+          `Cannot start idle motion because another idle motion has reserved.`,
+          this.dump(group, index)
+        )
+        return false
+      }
+
+      this.setReservedIdle(group, index)
+    } else {
+      if (priority < MotionPriority.FORCE) {
+        if (priority <= this.currentPriority) {
+          logger.log(
+            this.tag,
+            'Cannot start motion because another motion is playing as an equivalent or higher priority.',
+            this.dump(group, index)
+          )
+          return false
         }
 
-        if (group === this.currentGroup && index === this.currentIndex) {
-            logger.log(this.tag, `Motion is already playing.`, this.dump(group, index));
-            return false;
+        if (priority <= this.reservePriority) {
+          logger.log(
+            this.tag,
+            'Cannot start motion because another motion has reserved as an equivalent or higher priority.',
+            this.dump(group, index)
+          )
+          return false
         }
+      }
 
-        if (
-            (group === this.reservedGroup && index === this.reservedIndex) ||
-            (group === this.reservedIdleGroup && index === this.reservedIdleIndex)
-        ) {
-            logger.log(this.tag, `Motion is already reserved.`, this.dump(group, index));
-            return false;
-        }
-
-        if (priority === MotionPriority.IDLE) {
-            if (this.currentPriority !== MotionPriority.NONE) {
-                logger.log(
-                    this.tag,
-                    `Cannot start idle motion because another motion is playing.`,
-                    this.dump(group, index),
-                );
-                return false;
-            }
-
-            if (this.reservedIdleGroup !== undefined) {
-                logger.log(
-                    this.tag,
-                    `Cannot start idle motion because another idle motion has reserved.`,
-                    this.dump(group, index),
-                );
-                return false;
-            }
-
-            this.setReservedIdle(group, index);
-        } else {
-            if (priority < MotionPriority.FORCE) {
-                if (priority <= this.currentPriority) {
-                    logger.log(
-                        this.tag,
-                        "Cannot start motion because another motion is playing as an equivalent or higher priority.",
-                        this.dump(group, index),
-                    );
-                    return false;
-                }
-
-                if (priority <= this.reservePriority) {
-                    logger.log(
-                        this.tag,
-                        "Cannot start motion because another motion has reserved as an equivalent or higher priority.",
-                        this.dump(group, index),
-                    );
-                    return false;
-                }
-            }
-
-            this.setReserved(group, index, priority);
-        }
-
-        return true;
+      this.setReserved(group, index, priority)
     }
 
-    /**
-     * Requests the playback for a motion.
-     * @param motion - The Motion, can be undefined.
-     * @param group - The motion group.
-     * @param index - Index in the motion group.
-     * @param priority - The priority to be applied.
-     * @return True if the request has been approved, i.e. the motion is allowed to play.
-     */
-    start(motion: any, group: string, index: number, priority: MotionPriority): boolean {
-        if (priority === MotionPriority.IDLE) {
-            this.setReservedIdle(undefined, undefined);
+    return true
+  }
 
-            if (this.currentPriority !== MotionPriority.NONE) {
-                logger.log(
-                    this.tag,
-                    "Cannot start idle motion because another motion is playing.",
-                    this.dump(group, index),
-                );
-                return false;
-            }
-        } else {
-            if (group !== this.reservedGroup || index !== this.reservedIndex) {
-                logger.log(
-                    this.tag,
-                    "Cannot start motion because another motion has taken the place.",
-                    this.dump(group, index),
-                );
-                return false;
-            }
+  /**
+   * Requests the playback for a motion.
+   * @param motion - The Motion, can be undefined.
+   * @param group - The motion group.
+   * @param index - Index in the motion group.
+   * @param priority - The priority to be applied.
+   * @return True if the request has been approved, i.e. the motion is allowed to play.
+   */
+  start(motion: any, group: string, index: number, priority: MotionPriority): boolean {
+    if (priority === MotionPriority.IDLE) {
+      this.setReservedIdle(undefined, undefined)
 
-            this.setReserved(undefined, undefined, MotionPriority.NONE);
-        }
+      if (this.currentPriority !== MotionPriority.NONE) {
+        logger.log(
+          this.tag,
+          'Cannot start idle motion because another motion is playing.',
+          this.dump(group, index)
+        )
+        return false
+      }
+    } else {
+      if (group !== this.reservedGroup || index !== this.reservedIndex) {
+        logger.log(
+          this.tag,
+          'Cannot start motion because another motion has taken the place.',
+          this.dump(group, index)
+        )
+        return false
+      }
 
-        if (!motion) {
-            return false;
-        }
-
-        this.setCurrent(group, index, priority);
-
-        return true;
+      this.setReserved(undefined, undefined, MotionPriority.NONE)
     }
 
-    /**
-     * Notifies the motion playback has finished.
-     */
-    complete() {
-        this.setCurrent(undefined, undefined, MotionPriority.NONE);
+    if (!motion) {
+      return false
     }
 
-    /**
-     * Sets the current motion.
-     */
-    setCurrent(group: string | undefined, index: number | undefined, priority: MotionPriority) {
-        this.currentPriority = priority;
-        this.currentGroup = group;
-        this.currentIndex = index;
-    }
+    this.setCurrent(group, index, priority)
 
-    /**
-     * Sets the reserved motion.
-     */
-    setReserved(group: string | undefined, index: number | undefined, priority: MotionPriority) {
-        this.reservePriority = priority;
-        this.reservedGroup = group;
-        this.reservedIndex = index;
-    }
+    return true
+  }
 
-    /**
-     * Sets the reserved idle motion.
-     */
-    setReservedIdle(group: string | undefined, index: number | undefined) {
-        this.reservedIdleGroup = group;
-        this.reservedIdleIndex = index;
-    }
+  /**
+   * Notifies the motion playback has finished.
+   */
+  complete() {
+    this.setCurrent(undefined, undefined, MotionPriority.NONE)
+  }
 
-    /**
-     * Checks if a Motion is currently playing or has reserved.
-     * @return True if active.
-     */
-    isActive(group: string, index: number): boolean {
-        return (
-            (group === this.currentGroup && index === this.currentIndex) ||
-            (group === this.reservedGroup && index === this.reservedIndex) ||
-            (group === this.reservedIdleGroup && index === this.reservedIdleIndex)
-        );
-    }
+  /**
+   * Sets the current motion.
+   */
+  setCurrent(group: string | undefined, index: number | undefined, priority: MotionPriority) {
+    this.currentPriority = priority
+    this.currentGroup = group
+    this.currentIndex = index
+  }
 
-    /**
-     * Resets the state.
-     */
-    reset() {
-        this.setCurrent(undefined, undefined, MotionPriority.NONE);
+  /**
+   * Sets the reserved motion.
+   */
+  setReserved(group: string | undefined, index: number | undefined, priority: MotionPriority) {
+    this.reservePriority = priority
+    this.reservedGroup = group
+    this.reservedIndex = index
+  }
 
-        // make sure the reserved motions (if existing) won't start when they are loaded
-        this.setReserved(undefined, undefined, MotionPriority.NONE);
-        this.setReservedIdle(undefined, undefined);
-    }
+  /**
+   * Sets the reserved idle motion.
+   */
+  setReservedIdle(group: string | undefined, index: number | undefined) {
+    this.reservedIdleGroup = group
+    this.reservedIdleIndex = index
+  }
 
-    /**
-     * Checks if an idle motion should be requests to play.
-     */
-    shouldRequestIdleMotion(): boolean {
-        return this.currentGroup === undefined && this.reservedIdleGroup === undefined;
-    }
+  /**
+   * Checks if a Motion is currently playing or has reserved.
+   * @return True if active.
+   */
+  isActive(group: string, index: number): boolean {
+    return (
+      (group === this.currentGroup && index === this.currentIndex) ||
+      (group === this.reservedGroup && index === this.reservedIndex) ||
+      (group === this.reservedIdleGroup && index === this.reservedIdleIndex)
+    )
+  }
 
-    /**
-     * Checks if the model's expression should be overridden by the motion.
-     */
-    shouldOverrideExpression(): boolean {
-        return !config.preserveExpressionOnMotion && this.currentPriority > MotionPriority.IDLE;
-    }
+  /**
+   * Resets the state.
+   */
+  reset() {
+    this.setCurrent(undefined, undefined, MotionPriority.NONE)
 
-    /**
-     * Dumps the state for debugging.
-     */
-    dump(requestedGroup?: string, requestedIndex?: number): string {
-        if (this.debug) {
-            const keys: (keyof this & string)[] = [
-                "currentPriority",
-                "reservePriority",
-                "currentGroup",
-                "currentIndex",
-                "reservedGroup",
-                "reservedIndex",
-                "reservedIdleGroup",
-                "reservedIdleIndex",
-            ];
-            return (
-                `\n<Requested> group = "${requestedGroup}", index = ${requestedIndex}\n` +
-                keys.map((key) => "[" + key + "] " + this[key]).join("\n")
-            );
-        }
-        return "";
+    // make sure the reserved motions (if existing) won't start when they are loaded
+    this.setReserved(undefined, undefined, MotionPriority.NONE)
+    this.setReservedIdle(undefined, undefined)
+  }
+
+  /**
+   * Checks if an idle motion should be requests to play.
+   */
+  shouldRequestIdleMotion(): boolean {
+    return this.currentGroup === undefined && this.reservedIdleGroup === undefined
+  }
+
+  /**
+   * Checks if the model's expression should be overridden by the motion.
+   */
+  shouldOverrideExpression(): boolean {
+    return !config.preserveExpressionOnMotion && this.currentPriority > MotionPriority.IDLE
+  }
+
+  /**
+   * Dumps the state for debugging.
+   */
+  dump(requestedGroup?: string, requestedIndex?: number): string {
+    if (this.debug) {
+      const keys: (keyof this & string)[] = [
+        'currentPriority',
+        'reservePriority',
+        'currentGroup',
+        'currentIndex',
+        'reservedGroup',
+        'reservedIndex',
+        'reservedIdleGroup',
+        'reservedIdleIndex'
+      ]
+      return (
+        `\n<Requested> group = "${requestedGroup}", index = ${requestedIndex}\n` +
+        keys.map((key) => '[' + key + '] ' + this[key]).join('\n')
+      )
     }
+    return ''
+  }
 }

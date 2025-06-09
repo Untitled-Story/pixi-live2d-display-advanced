@@ -2,18 +2,18 @@ Motions are managed by the `MotionManager` of each model.
 
 ### Idle motions
 
-When the model is not playing any motion, it's considered *idle*, and then its motion manager will randomly start an idle motion as "idle" priority.
+When the model is not playing any motion, it's considered _idle_, and then its motion manager will randomly start an idle motion as "idle" priority.
 
 Idle motions refer to the ones defined in a dedicated motion group: `"idle"` on Cubism 2, and `"Idle"` on Cubism 4. But you can specify a custom group to read idle motions from:
 
 ```js
-model.internalModel.motionManager.groups.idle = 'main_idle';
+model.internalModel.motionManager.groups.idle = 'main_idle'
 ```
 
 You can also specify it when creating the model, in order to preload this group according to the preload strategy.
 
 ```js
-const model = await Live2DModel.from('shizuku.model.json', { idleMotionGroup: 'main_idle' });
+const model = await Live2DModel.from('shizuku.model.json', { idleMotionGroup: 'main_idle' })
 ```
 
 ### Preloading motions
@@ -25,30 +25,32 @@ Motion preloading is here to help. It preloads motion during model creation to e
 By default, only idle motions will be preloaded. You can change this by setting the `motionPreload` option.
 
 ```js
-import { MotionPreloadStrategy } from 'pixi-live2d-display';
+import { MotionPreloadStrategy } from 'pixi-live2d-display'
 
 // MotionPreloadStrategy.ALL
 // MotionPreloadStrategy.IDLE
 // MotionPreloadStrategy.NONE
 
-const model = await Live2DModel.from('shizuku.model.json', { motionPreload: MotionPreloadStrategy.NONE });
+const model = await Live2DModel.from('shizuku.model.json', {
+  motionPreload: MotionPreloadStrategy.NONE
+})
 ```
 
 !!! caution
-    Be careful of using `MotionPreloadStrategy.ALL`. Loading too many motions at the same time will send a lot of HTTP requests that may block the network from loading other resources due to the browser's concurrent connection limit.
+Be careful of using `MotionPreloadStrategy.ALL`. Loading too many motions at the same time will send a lot of HTTP requests that may block the network from loading other resources due to the browser's concurrent connection limit.
 
 ### Starting Motions
 
 ```js
 // start the first motion in "tap_body" group
-model.motion('tap_body', 0);
+model.motion('tap_body', 0)
 
 // start a random motion in "tap_body" group
-model.motion('tap_body');
+model.motion('tap_body')
 
 // the above calls are shorthands of these methods
-model.internalModel.motionManager.startMotion('tap_body', 0);
-model.internalModel.motionManager.startRandomMotion('tap_body');
+model.internalModel.motionManager.startMotion('tap_body', 0)
+model.internalModel.motionManager.startRandomMotion('tap_body')
 ```
 
 These methods return a `Promise` that resolves with `true` when the motion is successfully started, and `false` otherwise.
@@ -66,19 +68,19 @@ A motion can be started as one of these priorities: `IDLE`, `NORMAL` and `FORCE`
 `NONE`: No priority. This cannot be assigned to a motion, it's internally used to represent the state that there's no any motion playing.
 
 ```js
-import { MotionPriority } from 'pixi-live2d-display';
+import { MotionPriority } from 'pixi-live2d-display'
 
-model.motion('tap_body', 0, MotionPriority.NORMAL);
+model.motion('tap_body', 0, MotionPriority.NORMAL)
 
 // start a random motion
-model.motion('tap_body', undefined, MotionPriority.NORMAL);
+model.motion('tap_body', undefined, MotionPriority.NORMAL)
 ```
 
 ### State management
 
-If a motion is requested to play when there's already another motion playing, then the current motion will not be canceled immediately, instead, the new motion *reserves* the place and starts to load, and the current motion will keep playing until the new motion has been loaded.
+If a motion is requested to play when there's already another motion playing, then the current motion will not be canceled immediately, instead, the new motion _reserves_ the place and starts to load, and the current motion will keep playing until the new motion has been loaded.
 
-The actual rules are a bit more complicated, below is a state-transition table specifying that which motion will *eventually* be played when attempting to start a motion in a particular situation, assuming the loading will never fail and will be finished in a relatively short time.
+The actual rules are a bit more complicated, below is a state-transition table specifying that which motion will _eventually_ be played when attempting to start a motion in a particular situation, assuming the loading will never fail and will be finished in a relatively short time.
 
 <table>
 <tr><th rowspan="2">When:</th><td colspan="4">Start motion C as:</td></tr>
@@ -154,9 +156,9 @@ If the motion is specified with a sound file, it'll be played together with this
 You can also set a global volume to all active audios, and it will also affect audios created in the future.
 
 ```js
-import { SoundManager } from 'pixi-live2d-display';
+import { SoundManager } from 'pixi-live2d-display'
 
-SoundManager.volume = 0.5;
+SoundManager.volume = 0.5
 ```
 
 To handle the audios separately, you can listen for the `motionStart` event.
@@ -165,11 +167,11 @@ To handle the audios separately, you can listen for the `motionStart` event.
 model.internalModel.motionManager.on('motionStart', (group, index, audio) => {
   if (audio) {
     // e.g. show subtitle for this audio
-    showSubtitle(group, index);
+    showSubtitle(group, index)
 
-    audio.addEventListener('ended', () => dismissSubtitle());
+    audio.addEventListener('ended', () => dismissSubtitle())
   }
-});
+})
 ```
 
 ### Motion Sync
@@ -199,19 +201,19 @@ Expressions are managed by `ExpressionManager` inside `MotionManager`.
 
 ```javascript
 // apply the first expression
-model.expression(0);
+model.expression(0)
 
 // apply the expression named "smile"
-model.expression('smile');
+model.expression('smile')
 
 // when the argument is omitted, it applies a random expression
-model.expression();
+model.expression()
 
 // the above calls are shorthands of these methods
-model.internalModel.motionManager.expressionManager.setExpression(0);
-model.internalModel.motionManager.expressionManager.setExpression('smile');
-model.internalModel.motionManager.expressionManager.setRandomExpression();
+model.internalModel.motionManager.expressionManager.setExpression(0)
+model.internalModel.motionManager.expressionManager.setExpression('smile')
+model.internalModel.motionManager.expressionManager.setRandomExpression()
 ```
 
 !!! caution
-    If a model has no expression defined in its settings, `ExpressionManager` will not be created at all, meaning that `model.internalModel.motionManager.expressionManager` is undefined.
+If a model has no expression defined in its settings, `ExpressionManager` will not be created at all, meaning that `model.internalModel.motionManager.expressionManager` is undefined.

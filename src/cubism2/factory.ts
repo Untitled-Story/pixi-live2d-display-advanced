@@ -1,58 +1,58 @@
-import { Cubism2InternalModel } from "@/cubism2/Cubism2InternalModel";
-import { Cubism2ModelSettings } from "@/cubism2/Cubism2ModelSettings";
-import { Live2DPhysics } from "@/cubism2/Live2DPhysics";
-import { Live2DPose } from "@/cubism2/Live2DPose";
-import type { Live2DFactoryOptions } from "@/factory/Live2DFactory";
-import { Live2DFactory } from "@/factory/Live2DFactory";
-import type { Cubism2Spec } from "../types/Cubism2Spec";
+import { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
+import { Cubism2ModelSettings } from '@/cubism2/Cubism2ModelSettings'
+import { Live2DPhysics } from '@/cubism2/Live2DPhysics'
+import { Live2DPose } from '@/cubism2/Live2DPose'
+import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
+import { Live2DFactory } from '@/factory/Live2DFactory'
+import type { Cubism2Spec } from '../types/Cubism2Spec'
 
 Live2DFactory.registerRuntime({
-    version: 2,
+  version: 2,
 
-    test(source: any): boolean {
-        return source instanceof Cubism2ModelSettings || Cubism2ModelSettings.isValidJSON(source);
-    },
+  test(source: any): boolean {
+    return source instanceof Cubism2ModelSettings || Cubism2ModelSettings.isValidJSON(source)
+  },
 
-    ready(): Promise<void> {
-        return Promise.resolve();
-    },
+  ready(): Promise<void> {
+    return Promise.resolve()
+  },
 
-    isValidMoc(modelData: ArrayBuffer): boolean {
-        if (modelData.byteLength < 3) {
-            return false;
-        }
+  isValidMoc(modelData: ArrayBuffer): boolean {
+    if (modelData.byteLength < 3) {
+      return false
+    }
 
-        const view = new Int8Array(modelData, 0, 3);
+    const view = new Int8Array(modelData, 0, 3)
 
-        return String.fromCharCode(...view) === "moc";
-    },
+    return String.fromCharCode(...view) === 'moc'
+  },
 
-    createModelSettings(json: object): Cubism2ModelSettings {
-        return new Cubism2ModelSettings(json as Cubism2Spec.ModelJSON & { url: string });
-    },
+  createModelSettings(json: object): Cubism2ModelSettings {
+    return new Cubism2ModelSettings(json as Cubism2Spec.ModelJSON & { url: string })
+  },
 
-    createCoreModel(data: ArrayBuffer): Live2DModelWebGL {
-        const model = Live2DModelWebGL.loadModel(data);
+  createCoreModel(data: ArrayBuffer): Live2DModelWebGL {
+    const model = Live2DModelWebGL.loadModel(data)
 
-        const error = Live2D.getError();
-        if (error) throw error;
+    const error = Live2D.getError()
+    if (error) throw error
 
-        return model;
-    },
+    return model
+  },
 
-    createInternalModel(
-        coreModel: Live2DModelWebGL,
-        settings: Cubism2ModelSettings,
-        options?: Live2DFactoryOptions,
-    ): Cubism2InternalModel {
-        return new Cubism2InternalModel(coreModel, settings, options);
-    },
+  createInternalModel(
+    coreModel: Live2DModelWebGL,
+    settings: Cubism2ModelSettings,
+    options?: Live2DFactoryOptions
+  ): Cubism2InternalModel {
+    return new Cubism2InternalModel(coreModel, settings, options)
+  },
 
-    createPose(coreModel: Live2DModelWebGL, data: any): Live2DPose {
-        return new Live2DPose(coreModel, data);
-    },
+  createPose(coreModel: Live2DModelWebGL, data: any): Live2DPose {
+    return new Live2DPose(coreModel, data)
+  },
 
-    createPhysics(coreModel: Live2DModelWebGL, data: any): Live2DPhysics {
-        return new Live2DPhysics(coreModel, data);
-    },
-});
+  createPhysics(coreModel: Live2DModelWebGL, data: any): Live2DPhysics {
+    return new Live2DPhysics(coreModel, data)
+  }
+})

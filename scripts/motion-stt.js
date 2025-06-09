@@ -1,4 +1,4 @@
-const assert = require("assert");
+const assert = require('assert')
 
 const STATE_TRANSITION_TABLE = `
                         NONE    IDLE    NORMAL  FORCE
@@ -31,67 +31,67 @@ Reserved B as FORCE     B       B       B       C
 
 Playing none
 Reserved B as FORCE     B       B       B       C
-`;
+`
 
-const inputPriorities = [];
-const currentStates = [];
-const results = [];
+const inputPriorities = []
+const currentStates = []
+const results = []
 
-const normalizeMotion = (motion) => (motion === "none" ? undefined : motion);
+const normalizeMotion = (motion) => (motion === 'none' ? undefined : motion)
 
 STATE_TRANSITION_TABLE.trim()
-    .split("\n")
-    .forEach((line, lineNumber) => {
-        if (lineNumber === 0) {
-            inputPriorities.push(...line.split(" ").filter(Boolean));
-            return;
-        }
+  .split('\n')
+  .forEach((line, lineNumber) => {
+    if (lineNumber === 0) {
+      inputPriorities.push(...line.split(' ').filter(Boolean))
+      return
+    }
 
-        const keywords = line
-            .split(" ")
-            .map((s) => s.trim().replace(/playing|reserved|as/i, ""))
-            .filter(Boolean);
+    const keywords = line
+      .split(' ')
+      .map((s) => s.trim().replace(/playing|reserved|as/i, ''))
+      .filter(Boolean)
 
-        switch ((lineNumber - 1) % 3) {
-            case 0:
-                currentStates.push({
-                    playing: normalizeMotion(keywords[0]),
-                    playingPriority: keywords[1],
-                });
-                break;
+    switch ((lineNumber - 1) % 3) {
+      case 0:
+        currentStates.push({
+          playing: normalizeMotion(keywords[0]),
+          playingPriority: keywords[1]
+        })
+        break
 
-            case 1:
-                Object.assign(currentStates[currentStates.length - 1], {
-                    reserved: normalizeMotion(keywords[0]),
-                    reservedPriority: keywords.length === 5 ? undefined : keywords[1],
-                });
+      case 1:
+        Object.assign(currentStates[currentStates.length - 1], {
+          reserved: normalizeMotion(keywords[0]),
+          reservedPriority: keywords.length === 5 ? undefined : keywords[1]
+        })
 
-                results.push(...keywords.slice(-4).map(normalizeMotion));
-                break;
-        }
-    });
+        results.push(...keywords.slice(-4).map(normalizeMotion))
+        break
+    }
+  })
 
-const isPriority = (str) => str === undefined || /NONE|IDLE|NORMAL|FORCE/.test(str);
-const isMotion = (str) => str === undefined || /[ABC]/.test(str);
+const isPriority = (str) => str === undefined || /NONE|IDLE|NORMAL|FORCE/.test(str)
+const isMotion = (str) => str === undefined || /[ABC]/.test(str)
 
 // validate the parsing result
-assert(inputPriorities.length * currentStates.length === results.length);
-assert(inputPriorities.every((col) => isPriority(col)));
+assert(inputPriorities.length * currentStates.length === results.length)
+assert(inputPriorities.every((col) => isPriority(col)))
 assert(
-    currentStates.every(
-        (row) =>
-            isMotion(row.playing) &&
-            isMotion(row.reserved) &&
-            isPriority(row.playingPriority) &&
-            isPriority(row.playingPriority),
-    ),
-);
-assert(results.every((item) => isMotion(item)));
+  currentStates.every(
+    (row) =>
+      isMotion(row.playing) &&
+      isMotion(row.reserved) &&
+      isPriority(row.playingPriority) &&
+      isPriority(row.playingPriority)
+  )
+)
+assert(results.every((item) => isMotion(item)))
 
 module.exports = {
-    STT: {
-        inputPriorities,
-        currentStates,
-        results,
-    },
-};
+  STT: {
+    inputPriorities,
+    currentStates,
+    results
+  }
+}

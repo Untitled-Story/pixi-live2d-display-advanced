@@ -1,94 +1,93 @@
-import type { Live2DModel } from "@/Live2DModel";
-import type { Renderer } from "@pixi/core";
-import { Rectangle } from "@pixi/core";
-import { Graphics } from "@pixi/graphics";
-import { Text, TextStyle } from "@pixi/text";
-import type { FederatedPointerEvent } from "pixi.js";
+import type { Live2DModel } from '@/Live2DModel'
+import type { Renderer } from '@pixi/core'
+import { Rectangle } from '@pixi/core'
+import { Graphics } from '@pixi/graphics'
+import { Text, TextStyle } from '@pixi/text'
+import type { FederatedPointerEvent } from 'pixi.js'
 
-const tempBounds = new Rectangle();
+const tempBounds = new Rectangle()
 
 export class HitAreaFrames extends Graphics {
-    initialized = false;
+  initialized = false
 
-    texts: Text[] = [];
+  texts: Text[] = []
 
-    strokeWidth = 4;
-    normalColor = 0xe31a1a;
-    activeColor = 0x1ec832;
+  strokeWidth = 4
+  normalColor = 0xe31a1a
+  activeColor = 0x1ec832
 
-    constructor() {
-        super();
+  constructor() {
+    super()
 
-        this.eventMode = "static";
+    this.eventMode = 'static'
 
-        this.on("added", this.init).on("globalpointermove", this.onPointerMove);
-    }
+    this.on('added', this.init).on('globalpointermove', this.onPointerMove)
+  }
 
-    init() {
-        const internalModel = (this.parent as Live2DModel).internalModel;
+  init() {
+    const internalModel = (this.parent as Live2DModel).internalModel
 
-        const textStyle = new TextStyle({
-            fontSize: 24,
-            fill: "#ffffff",
-            stroke: "#000000",
-            strokeThickness: 4,
-        });
+    const textStyle = new TextStyle({
+      fontSize: 24,
+      fill: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4
+    })
 
-        this.texts = Object.keys(internalModel.hitAreas).map((hitAreaName) => {
-            const text = new Text(hitAreaName, textStyle);
+    this.texts = Object.keys(internalModel.hitAreas).map((hitAreaName) => {
+      const text = new Text(hitAreaName, textStyle)
 
-            text.visible = false;
+      text.visible = false
 
-            this.addChild(text);
+      this.addChild(text)
 
-            return text;
-        });
-    }
+      return text
+    })
+  }
 
-    onPointerMove(e: FederatedPointerEvent) {
-        const hitAreaNames = (this.parent as Live2DModel).hitTest(e.data.global.x, e.data.global.y);
+  onPointerMove(e: FederatedPointerEvent) {
+    const hitAreaNames = (this.parent as Live2DModel).hitTest(e.data.global.x, e.data.global.y)
 
-        this.texts.forEach((text) => {
-            text.visible = hitAreaNames.includes(text.text);
-        });
-    }
+    this.texts.forEach((text) => {
+      text.visible = hitAreaNames.includes(text.text)
+    })
+  }
 
-    /** @override */
-    protected _render(renderer: Renderer): void {
-        const internalModel = (this.parent as Live2DModel).internalModel;
+  /** @override */
+  protected _render(renderer: Renderer): void {
+    const internalModel = (this.parent as Live2DModel).internalModel
 
-        // extract scale from the transform matrix, and invert it to ease following calculation
-        // https://math.stackexchange.com/a/13165
-        const scale =
-            1 /
-            Math.sqrt(this.transform.worldTransform.a ** 2 + this.transform.worldTransform.b ** 2);
+    // extract scale from the transform matrix, and invert it to ease following calculation
+    // https://math.stackexchange.com/a/13165
+    const scale =
+      1 / Math.sqrt(this.transform.worldTransform.a ** 2 + this.transform.worldTransform.b ** 2)
 
-        this.texts.forEach((text) => {
-            this.lineStyle({
-                width: this.strokeWidth * scale,
-                color: text.visible ? this.activeColor : this.normalColor,
-            });
+    this.texts.forEach((text) => {
+      this.lineStyle({
+        width: this.strokeWidth * scale,
+        color: text.visible ? this.activeColor : this.normalColor
+      })
 
-            const bounds = internalModel.getDrawableBounds(
-                internalModel.hitAreas[text.text]!.index,
-                tempBounds,
-            );
-            const transform = internalModel.localTransform;
+      const bounds = internalModel.getDrawableBounds(
+        internalModel.hitAreas[text.text]!.index,
+        tempBounds
+      )
+      const transform = internalModel.localTransform
 
-            bounds.x = bounds.x * transform.a + transform.tx;
-            bounds.y = bounds.y * transform.d + transform.ty;
-            bounds.width = bounds.width * transform.a;
-            bounds.height = bounds.height * transform.d;
+      bounds.x = bounds.x * transform.a + transform.tx
+      bounds.y = bounds.y * transform.d + transform.ty
+      bounds.width = bounds.width * transform.a
+      bounds.height = bounds.height * transform.d
 
-            this.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      this.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
 
-            text.x = bounds.x + this.strokeWidth * scale;
-            text.y = bounds.y + this.strokeWidth * scale;
-            text.scale.set(scale);
-        });
+      text.x = bounds.x + this.strokeWidth * scale
+      text.y = bounds.y + this.strokeWidth * scale
+      text.scale.set(scale)
+    })
 
-        super._render(renderer);
+    super._render(renderer)
 
-        this.clear();
-    }
+    this.clear()
+  }
 }

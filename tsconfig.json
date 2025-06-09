@@ -18,23 +18,9 @@
       "@/*": ["src/*"],
       "@cubism/*": ["cubism/src/*"]
     },
-    "types": [
-      "node",
-      "offscreencanvas"
-    ],
-    "lib": [
-      "esnext",
-      "dom",
-      "dom.iterable"
-    ]
+    "types": ["node", "offscreencanvas"],
+    "lib": ["esnext", "dom", "dom.iterable"]
   },
-  "include": [
-    "**/*",
-  ],
-  "exclude": [
-    "node_modules",
-    "lib",
-    "build*",
-    "./types"
-  ]
+  "include": ["**/*"],
+  "exclude": ["node_modules", "lib", "build*", "./types"]
 }

@@ -1,18 +1,18 @@
-const { inputPriorities, currentStates, results } = require("../test/motion-STT").STT;
-const Handlebars = require("handlebars");
-const fs = require("fs");
+const { inputPriorities, currentStates, results } = require('../test/motion-STT').STT
+const Handlebars = require('handlebars')
+const fs = require('fs')
 
-Handlebars.registerHelper("default", (a, b) => a || b);
+Handlebars.registerHelper('default', (a, b) => a || b)
 
-Handlebars.registerHelper("resultRow", function (rowIndex, options) {
-    let result = "";
+Handlebars.registerHelper('resultRow', function (rowIndex, options) {
+  let result = ''
 
-    for (let i = 0; i < inputPriorities.length; i++) {
-        result += options.fn(results[rowIndex * inputPriorities.length + i]);
-    }
+  for (let i = 0; i < inputPriorities.length; i++) {
+    result += options.fn(results[rowIndex * inputPriorities.length + i])
+  }
 
-    return result;
-});
+  return result
+})
 
 const template = Handlebars.compile(`
 <table>
@@ -30,8 +30,8 @@ const template = Handlebars.compile(`
 </tr>
 {{/each}}
 </table>
-`);
+`)
 
-const table = template({ inputPriorities, currentStates, results });
+const table = template({ inputPriorities, currentStates, results })
 
-fs.writeFileSync("STT.md", table, { encoding: "utf8" });
+fs.writeFileSync('STT.md', table, { encoding: 'utf8' })

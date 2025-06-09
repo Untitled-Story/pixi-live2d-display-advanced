@@ -2,13 +2,13 @@ name: Test CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths-ignore:
-      - "docs/**"
-      - "playground/**"
-      - "*.md"
+      - 'docs/**'
+      - 'playground/**'
+      - '*.md'
   pull_request:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch:
   workflow_call:
 
@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 18
           registry-url: 'https://registry.npmjs.org'
-          cache: "npm"
+          cache: 'npm'
 
       - name: Cache core files
         uses: actions/cache@v3
@@ -48,7 +48,6 @@ jobs:
       - run: npm run type
       - run: npm run build
 
-      
       - name: Commit files
         run: |
           git config --global user.name 'RaSan147'
@@ -56,8 +55,6 @@ jobs:
           git add --all
           git commit -am "Automated report"
           git push
-
-
 
       - uses: actions/upload-artifact@v3
         with:
@@ -75,4 +72,3 @@ jobs:
           name: diff-images
           path: test/**/__image_snapshots__/__diff_output__/*
           if-no-files-found: ignore
-          

@@ -1,12 +1,12 @@
-import type { InternalModel, ModelSettings } from "@/cubism-common";
-import type { Live2DFactoryContext } from "@/factory/Live2DFactory";
-import type { Live2DFactory } from "@/factory/Live2DFactory";
-import { Live2DLoader } from "@/factory/Live2DLoader";
-import type { Middleware } from "@/utils/middleware";
-import url from "url";
-import type { ExtendedFileList } from "./FileLoader";
+import type { InternalModel, ModelSettings } from '@/cubism-common'
+import type { Live2DFactoryContext } from '@/factory/Live2DFactory'
+import type { Live2DFactory } from '@/factory/Live2DFactory'
+import { Live2DLoader } from '@/factory/Live2DLoader'
+import type { Middleware } from '@/utils/middleware'
+import url from 'url'
+import type { ExtendedFileList } from './FileLoader'
 
-type ZipReader = any;
+type ZipReader = any
 
 /**
  * Experimental loader to load resources from a zip file.
@@ -15,160 +15,160 @@ type ZipReader = any;
  * it only contains a middleware for the Live2DFactory.
  */
 export class ZipLoader {
-    // will be set by Live2DFactory
-    private static live2dFactory: typeof Live2DFactory;
+  // will be set by Live2DFactory
+  private static live2dFactory: typeof Live2DFactory
 
-    static ZIP_PROTOCOL = "zip://";
-    static uid = 0;
+  static ZIP_PROTOCOL = 'zip://'
+  static uid = 0
 
-    static factory: Middleware<Live2DFactoryContext> = async (context, next) => {
-        const source = context.source;
+  static factory: Middleware<Live2DFactoryContext> = async (context, next) => {
+    const source = context.source
 
-        let sourceURL: string;
-        let zipBlob: Blob | undefined;
-        let settings: ModelSettings | undefined;
+    let sourceURL: string
+    let zipBlob: Blob | undefined
+    let settings: ModelSettings | undefined
 
-        if (
-            typeof source === "string" &&
-            (source.endsWith(".zip") || source.startsWith(ZipLoader.ZIP_PROTOCOL))
-        ) {
-            if (source.startsWith(ZipLoader.ZIP_PROTOCOL)) {
-                sourceURL = source.slice(ZipLoader.ZIP_PROTOCOL.length);
-            } else {
-                sourceURL = source;
-            }
+    if (
+      typeof source === 'string' &&
+      (source.endsWith('.zip') || source.startsWith(ZipLoader.ZIP_PROTOCOL))
+    ) {
+      if (source.startsWith(ZipLoader.ZIP_PROTOCOL)) {
+        sourceURL = source.slice(ZipLoader.ZIP_PROTOCOL.length)
+      } else {
+        sourceURL = source
+      }
 
-            zipBlob = await Live2DLoader.load({
-                url: sourceURL,
-                type: "blob",
-                target: context.live2dModel,
-            });
-        } else if (
-            Array.isArray(source) &&
-            source.length === 1 &&
-            source[0] instanceof File &&
-            source[0].name.endsWith(".zip")
-        ) {
-            zipBlob = source[0];
+      zipBlob = await Live2DLoader.load({
+        url: sourceURL,
+        type: 'blob',
+        target: context.live2dModel
+      })
+    } else if (
+      Array.isArray(source) &&
+      source.length === 1 &&
+      source[0] instanceof File &&
+      source[0].name.endsWith('.zip')
+    ) {
+      zipBlob = source[0]
 
-            sourceURL = URL.createObjectURL(zipBlob);
+      sourceURL = URL.createObjectURL(zipBlob)
 
-            settings = (source as ExtendedFileList).settings;
-        }
-
-        if (zipBlob) {
-            if (!zipBlob.size) {
-                throw new Error("Empty zip file");
-            }
-
-            const reader = await ZipLoader.zipReader(zipBlob, sourceURL!);
-
-            if (!settings) {
-                settings = await ZipLoader.createSettings(reader);
-            }
-
-            // a fake URL, the only requirement is it should be unique,
-            // as FileLoader will use it as the ID of all uploaded files
-            settings._objectURL = ZipLoader.ZIP_PROTOCOL + ZipLoader.uid + "/" + settings.url;
-
-            const files = await ZipLoader.unzip(reader, settings);
-
-            (files as ExtendedFileList).settings = settings;
-
-            // pass files to the FileLoader
-            context.source = files;
-
-            // clean up when destroying the model
-            if (sourceURL!.startsWith("blob:")) {
-                context.live2dModel.once("modelLoaded", (internalModel: InternalModel) => {
-                    internalModel.once("destroy", function (this: InternalModel) {
-                        URL.revokeObjectURL(sourceURL);
-                    });
-                });
-            }
-
-            ZipLoader.releaseReader(reader);
-        }
-
-        return next();
-    };
-
-    static async unzip(reader: ZipReader, settings: ModelSettings): Promise<File[]> {
-        const filePaths = await ZipLoader.getFilePaths(reader);
-
-        const requiredFilePaths: string[] = [];
-
-        // only consume the files defined in settings
-        for (const definedFile of settings.getDefinedFiles()) {
-            const actualPath = decodeURI(url.resolve(settings.url, definedFile));
-
-            if (filePaths.includes(actualPath)) {
-                requiredFilePaths.push(actualPath);
-            }
-        }
-
-        const files = await ZipLoader.getFiles(reader, requiredFilePaths);
-
-        for (let i = 0; i < files.length; i++) {
-            const path = requiredFilePaths[i]!;
-            const file = files[i]!;
-
-            // let's borrow this property...
-            Object.defineProperty(file, "webkitRelativePath", {
-                value: path,
-            });
-        }
-
-        return files;
+      settings = (source as ExtendedFileList).settings
     }
 
-    static async createSettings(reader: ZipReader): Promise<ModelSettings> {
-        const filePaths = await ZipLoader.getFilePaths(reader);
+    if (zipBlob) {
+      if (!zipBlob.size) {
+        throw new Error('Empty zip file')
+      }
 
-        const settingsFilePath = filePaths.find(
-            (path) => path.endsWith("model.json") || path.endsWith("model3.json"),
-        );
+      const reader = await ZipLoader.zipReader(zipBlob, sourceURL!)
 
-        if (!settingsFilePath) {
-            throw new Error("Settings file not found");
-        }
+      if (!settings) {
+        settings = await ZipLoader.createSettings(reader)
+      }
 
-        const settingsText = await ZipLoader.readText(reader, settingsFilePath);
+      // a fake URL, the only requirement is it should be unique,
+      // as FileLoader will use it as the ID of all uploaded files
+      settings._objectURL = ZipLoader.ZIP_PROTOCOL + ZipLoader.uid + '/' + settings.url
 
-        if (!settingsText) {
-            throw new Error("Empty settings file: " + settingsFilePath);
-        }
+      const files = await ZipLoader.unzip(reader, settings)
 
-        const settingsJSON = JSON.parse(settingsText);
+      ;(files as ExtendedFileList).settings = settings
 
-        settingsJSON.url = settingsFilePath;
+      // pass files to the FileLoader
+      context.source = files
 
-        const runtime = ZipLoader.live2dFactory.findRuntime(settingsJSON);
+      // clean up when destroying the model
+      if (sourceURL!.startsWith('blob:')) {
+        context.live2dModel.once('modelLoaded', (internalModel: InternalModel) => {
+          internalModel.once('destroy', function (this: InternalModel) {
+            URL.revokeObjectURL(sourceURL)
+          })
+        })
+      }
 
-        if (!runtime) {
-            throw new Error("Unknown settings JSON");
-        }
-
-        return runtime.createModelSettings(settingsJSON);
+      ZipLoader.releaseReader(reader)
     }
 
-    static async zipReader(data: Blob, url: string): Promise<ZipReader> {
-        throw new Error("Not implemented");
+    return next()
+  }
+
+  static async unzip(reader: ZipReader, settings: ModelSettings): Promise<File[]> {
+    const filePaths = await ZipLoader.getFilePaths(reader)
+
+    const requiredFilePaths: string[] = []
+
+    // only consume the files defined in settings
+    for (const definedFile of settings.getDefinedFiles()) {
+      const actualPath = decodeURI(url.resolve(settings.url, definedFile))
+
+      if (filePaths.includes(actualPath)) {
+        requiredFilePaths.push(actualPath)
+      }
     }
 
-    static async getFilePaths(reader: ZipReader): Promise<string[]> {
-        throw new Error("Not implemented");
+    const files = await ZipLoader.getFiles(reader, requiredFilePaths)
+
+    for (let i = 0; i < files.length; i++) {
+      const path = requiredFilePaths[i]!
+      const file = files[i]!
+
+      // let's borrow this property...
+      Object.defineProperty(file, 'webkitRelativePath', {
+        value: path
+      })
     }
 
-    static async getFiles(reader: ZipReader, paths: string[]): Promise<File[]> {
-        throw new Error("Not implemented");
+    return files
+  }
+
+  static async createSettings(reader: ZipReader): Promise<ModelSettings> {
+    const filePaths = await ZipLoader.getFilePaths(reader)
+
+    const settingsFilePath = filePaths.find(
+      (path) => path.endsWith('model.json') || path.endsWith('model3.json')
+    )
+
+    if (!settingsFilePath) {
+      throw new Error('Settings file not found')
     }
 
-    static async readText(reader: ZipReader, path: string): Promise<string> {
-        throw new Error("Not implemented");
+    const settingsText = await ZipLoader.readText(reader, settingsFilePath)
+
+    if (!settingsText) {
+      throw new Error('Empty settings file: ' + settingsFilePath)
     }
 
-    static releaseReader(reader: ZipReader) {
-        // this method is optional
+    const settingsJSON = JSON.parse(settingsText)
+
+    settingsJSON.url = settingsFilePath
+
+    const runtime = ZipLoader.live2dFactory.findRuntime(settingsJSON)
+
+    if (!runtime) {
+      throw new Error('Unknown settings JSON')
     }
+
+    return runtime.createModelSettings(settingsJSON)
+  }
+
+  static async zipReader(data: Blob, url: string): Promise<ZipReader> {
+    throw new Error('Not implemented')
+  }
+
+  static async getFilePaths(reader: ZipReader): Promise<string[]> {
+    throw new Error('Not implemented')
+  }
+
+  static async getFiles(reader: ZipReader, paths: string[]): Promise<File[]> {
+    throw new Error('Not implemented')
+  }
+
+  static async readText(reader: ZipReader, path: string): Promise<string> {
+    throw new Error('Not implemented')
+  }
+
+  static releaseReader(reader: ZipReader) {
+    // this method is optional
+  }
 }

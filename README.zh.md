@@ -10,33 +10,33 @@
 
 #### 特性
 
--   支持所有版本的 Live2D 模型
--   支持 PIXI.RenderTexture 和 PIXI.Filter
--   Pixi 风格的变换 API：position, scale, rotation, skew, anchor
--   自动交互：鼠标跟踪, 点击命中检测
--   比官方框架更好的动作预约逻辑
--   从上传的文件或 zip 文件中加载 (实验性功能)
--   完善的类型定义 - 我们都喜欢类型！
--   实时口型同步
--   同时播放多个动作
+- 支持所有版本的 Live2D 模型
+- 支持 PIXI.RenderTexture 和 PIXI.Filter
+- Pixi 风格的变换 API：position, scale, rotation, skew, anchor
+- 自动交互：鼠标跟踪, 点击命中检测
+- 比官方框架更好的动作预约逻辑
+- 从上传的文件或 zip 文件中加载 (实验性功能)
+- 完善的类型定义 - 我们都喜欢类型！
+- 实时口型同步
+- 同时播放多个动作
 
 #### 要求
 
--   PixiJS：7.x
--   Cubism core: 2.1 or 4 
--   浏览器：WebGL， ES6
+- PixiJS：7.x
+- Cubism core: 2.1 or 4
+- 浏览器：WebGL， ES6
 
 #### 示例
 
--   [基础示例](https://codepen.io/guansss/pen/oNzoNoz/left?editors=1010)
--   [交互示例](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
--   [渲染纹理与滤镜示例](https://codepen.io/guansss/pen/qBaMNQV/left?editors=1010)
--   [Live2D Viewer Online](https://guansss.github.io/live2d-viewer-web/)
+- [基础示例](https://codepen.io/guansss/pen/oNzoNoz/left?editors=1010)
+- [交互示例](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
+- [渲染纹理与滤镜示例](https://codepen.io/guansss/pen/qBaMNQV/left?editors=1010)
+- [Live2D Viewer Online](https://guansss.github.io/live2d-viewer-web/)
 
 #### 文档
 
--   [文档](https://guansss.github.io/pixi-live2d-display)（暂无中文翻译）
--   [API 文档](https://guansss.github.io/pixi-live2d-display/api/index.html)
+- [文档](https://guansss.github.io/pixi-live2d-display)（暂无中文翻译）
+- [API 文档](https://guansss.github.io/pixi-live2d-display/api/index.html)
 
 ## Cubism
 
@@ -66,9 +66,9 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 
 为了更明确一点，这里列出使用这些文件的方法：
 
--   使用 `cubism2.js`+`live2d.min.js` 以支持 Cubism 2.1 模型
--   使用 `cubism4.js`+`live2dcubismcore.min.js` 以支持 Cubism 3 和 Cubism 4 模型
--   使用 `index.js`+`live2d.min.js`+`live2dcubismcore.min.js` 以支持所有版本的模型
+- 使用 `cubism2.js`+`live2d.min.js` 以支持 Cubism 2.1 模型
+- 使用 `cubism4.js`+`live2dcubismcore.min.js` 以支持 Cubism 3 和 Cubism 4 模型
+- 使用 `index.js`+`live2d.min.js`+`live2dcubismcore.min.js` 以支持所有版本的模型
 
 ## 安装
 
@@ -79,13 +79,13 @@ npm install pixi-live2d-display-mulmotion
 ```
 
 ```js
-import { Live2DModel } from 'pixi-live2d-display-mulmotion';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion'
 
 // 如果只需要 Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2'
 
 // 如果只需要 Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4';
+import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4'
 ```
 
 #### 通过 CDN (口型同步修改版 / 多动作播放未支持)
@@ -116,13 +116,11 @@ import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4';
 
 ```ts
 model.parallelMotion([
-  {group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL},
-  {group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL},
-]);
+  { group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL },
+  { group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL }
+])
 ```
 
 若需要同步播放表情、声音等请使用`model.motion`/`model.speak`播放其中一个动作，其余动作用`model.parallelMotion`播放。列表中按照index每一项都有独立的优先级控制，和`model.motion`逻辑一致。
 
 # 请参阅此处了解更多文档： [文档](https://guansss.github.io/pixi-live2d-display/)
-
-
