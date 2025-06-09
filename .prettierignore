@@ -1,0 +1,12 @@
+core/
+!core/README.md
+!core/live2d.d.ts
+
+cubism/
+dist/
+node_modules/
+
+/types
+
+**/test.build
+**/coverage
