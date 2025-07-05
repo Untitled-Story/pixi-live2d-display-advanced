@@ -3,6 +3,11 @@
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
+> [!IMPORTANT]  
+> The document will be rewritten, yhe special methods of this project can be referred to 
+> [there](#how-to-play-the-last-frame). For other methods, please see 
+> https://github.com/K-bai/pixi-live2d-display
+
 English | [中文](README.zh.md)
 
 Live2D integration for [PixiJS](https://github.com/pixijs/pixi.js) v7.
