@@ -5,7 +5,6 @@ import type { Cubism2Spec } from '@/types/Cubism2Spec'
 import type { Mutable } from '@/types/helpers'
 import './patch-motion'
 import { MotionPriority } from '@/cubism-common'
-import MotionQueueEnt = Live2DObfuscated.MotionQueueEnt
 import type { Live2DModel } from '@/Live2DModel'
 
 export class Cubism2ParallelMotionManager extends ParallelMotionManager<
@@ -72,9 +71,11 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
     const duration = motion.getDurationMSec()
 
     const motionQueueEntNo = this.queueManager.startMotion(motion, true)
-    const motionQueueEnt = this.queueManager.motions[motionQueueEntNo - 1] as MotionQueueEnt
 
-    // Why undefined sometime
+    const motionQueueEnt = this.queueManager.motions.find(
+      (entry) => entry && entry._$sr === motionQueueEntNo
+    )
+
     if (!motionQueueEnt) {
       return false
     }

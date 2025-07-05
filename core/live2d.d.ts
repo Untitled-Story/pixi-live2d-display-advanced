@@ -1,5 +1,7 @@
 // noinspection JSUnusedGlobalSymbols,SpellCheckingInspection
 
+import MotionQueueEnt = Live2DObfuscated.MotionQueueEnt
+
 /**
  * Unofficial declaration file of Cubism 2.1 core library.
  *
@@ -85,7 +87,7 @@ declare class Live2DMotion extends AMotion {
 }
 
 declare class MotionQueueManager {
-  motions: unknown[]
+  motions: MotionQueueEnt[]
 
   /**
    * @return The size of internal motion arrays.
@@ -136,6 +138,11 @@ declare class DrawDataID {
 declare namespace Live2DObfuscated {
   class MotionQueueEnt {
     isFinished(): boolean;
+
+    /**
+     * The id of the entry.
+     */
+    _$sr: number;
   }
 
   class DrawParamWebGL {
