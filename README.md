@@ -1,8 +1,7 @@
 # pixi-live2d-display-advanced
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/guansss/pixi-live2d-display?style=flat-square)
+![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/guansss/pixi-live2d-display/test.yml?style=flat-square)
 
 English | [中文](README.zh.md)
 
