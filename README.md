@@ -153,7 +153,7 @@ If you need to synchronize the playback of expressions and sounds, please use`mo
 I add a function `async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>` ~~in
 the `Cubism4ParallelMotionManager`, so it only supports the Cubism4 Models.~~
 
-In the version v0.2.0 and later, this function has been added to both Cubism 2 and Cubism 4, but it may not run stably in Cubism 2.
+In the version v0.2.1 and later, this function has been added to both Cubism 2 and Cubism 4
 
 You can play it in this way:
 
