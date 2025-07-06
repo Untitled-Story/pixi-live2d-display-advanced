@@ -85,13 +85,13 @@ export abstract class ParallelMotionManager<
     if (!this.state.start(motion, group, index, priority)) {
       return false
     }
-    logger.log(this.tag, 'Start motion:', this.getMotionName(definition))
+    logger.log(this.tag, 'Start motion:', this.getMotionName(definition as MotionSpec))
 
     this.emit('motionStart', group, index, undefined)
 
     this.playing = true
 
-    this._startMotion(motion!)
+    this._startMotion(motion! as Motion)
 
     return true
   }
