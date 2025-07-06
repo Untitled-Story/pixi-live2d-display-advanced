@@ -5,7 +5,7 @@ import type { ModelSettings } from '@/cubism-common/ModelSettings'
 import { MotionPriority, MotionState } from '@/cubism-common/MotionState'
 import { logger } from '@/utils'
 import { utils } from '@pixi/core'
-import type { Live2DModel } from '@/Live2DModel'
+import type { InternalModel } from '@/cubism-common/InternalModel'
 
 /**
  * Handles the motion playback.
@@ -42,12 +42,15 @@ export abstract class ParallelMotionManager<
    */
   destroyed = false
 
-  protected constructor(settings: ModelSettings, manager: MotionManager) {
+  readonly parent: InternalModel
+
+  protected constructor(parent: InternalModel) {
     super()
-    this.settings = settings
-    this.tag = `ParallelMotionManager(${settings.name})`
+    this.settings = parent.settings
+    this.tag = `ParallelMotionManager(${this.settings.name})`
     this.state.tag = this.tag
-    this.manager = manager
+    this.manager = parent.motionManager
+    this.parent = parent
   }
 
   /**
@@ -193,5 +196,5 @@ export abstract class ParallelMotionManager<
    */
   protected abstract updateParameters(model: object, now: DOMHighResTimeStamp): boolean
 
-  abstract playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean>
+  abstract playMotionLastFrame(group: string, index: number): Promise<boolean>
 }

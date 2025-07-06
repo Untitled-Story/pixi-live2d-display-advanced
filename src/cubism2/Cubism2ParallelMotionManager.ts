@@ -1,11 +1,9 @@
-import type { MotionManager } from '@/cubism-common/MotionManager'
 import { ParallelMotionManager } from '@/cubism-common/ParallelMotionManager'
-import type { Cubism2ModelSettings } from '@/cubism2/Cubism2ModelSettings'
 import type { Cubism2Spec } from '@/types/Cubism2Spec'
 import type { Mutable } from '@/types/helpers'
 import './patch-motion'
 import { MotionPriority } from '@/cubism-common'
-import type { Live2DModel } from '@/Live2DModel'
+import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
 
 export class Cubism2ParallelMotionManager extends ParallelMotionManager<
   Live2DMotion,
@@ -13,8 +11,8 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
 > {
   readonly queueManager = new MotionQueueManager()
 
-  constructor(settings: Cubism2ModelSettings, manager: MotionManager) {
-    super(settings, manager)
+  constructor(parent: Cubism2InternalModel) {
+    super(parent)
   }
 
   isFinished(): boolean {
@@ -46,7 +44,7 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
     ;(this as Partial<Mutable<this>>).queueManager = undefined
   }
 
-  async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean> {
+  async playMotionLastFrame(group: string, index: number): Promise<boolean> {
     if (!this.state.reserve(group, index, MotionPriority.FORCE)) {
       return false
     }
@@ -79,12 +77,7 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
       return false
     }
 
-    motion.updateParamExe(
-      model.internalModel.coreModel as Live2DModelWebGL,
-      duration,
-      1.0,
-      motionQueueEnt
-    )
+    motion.updateParamExe(this.parent.coreModel as Live2DModelWebGL, duration, 1.0, motionQueueEnt)
 
     this.playing = false
     return true

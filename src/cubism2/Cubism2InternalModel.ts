@@ -286,7 +286,7 @@ export class Cubism2InternalModel extends InternalModel {
     this.coreModel.addToParamFloat(this.bodyAngleXParamIndex, this.focusController.x * 10)
   }
 
-  updateNaturalMovements(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp) {
+  updateNaturalMovements(_dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp) {
     const t = (now / 1000) * 2 * Math.PI
 
     this.coreModel.addToParamFloat(
@@ -336,9 +336,7 @@ export class Cubism2InternalModel extends InternalModel {
 
   extendParallelMotionManager(managerCount: number) {
     while (this.parallelMotionManager.length < managerCount) {
-      this.parallelMotionManager.push(
-        new Cubism2ParallelMotionManager(this.settings, this.motionManager)
-      )
+      this.parallelMotionManager.push(new Cubism2ParallelMotionManager(this))
     }
   }
 

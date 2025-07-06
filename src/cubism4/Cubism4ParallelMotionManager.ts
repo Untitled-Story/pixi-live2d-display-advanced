@@ -6,9 +6,8 @@ import type { ACubismMotion } from '@cubism/motion/acubismmotion'
 import type { CubismMotion } from '@cubism/motion/cubismmotion'
 import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanager'
 import type { Mutable } from '@/types/helpers'
-import type { MotionManager } from '@/cubism-common/MotionManager'
-import type { Live2DModel } from '@/Live2DModel'
 import { MotionPriority } from '@/cubism-common'
+import type { Cubism4InternalModel } from '@/cubism4/Cubism4InternalModel'
 
 export class Cubism4ParallelMotionManager extends ParallelMotionManager<
   CubismMotion,
@@ -18,14 +17,13 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
 
   declare readonly settings: Cubism4ModelSettings
 
-  constructor(settings: Cubism4ModelSettings, manager: MotionManager) {
-    super(settings, manager)
+  constructor(parent: Cubism4InternalModel) {
+    super(parent)
 
     this.init()
   }
 
   protected init() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.queueManager.setEventCallback((_caller, eventValue, _customData) => {
       this.emit('motion:' + eventValue)
     })
@@ -61,7 +59,7 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
     ;(this as Partial<Mutable<this>>).queueManager = undefined
   }
 
-  async playMotionLastFrame(model: Live2DModel, group: string, index: number): Promise<boolean> {
+  async playMotionLastFrame(group: string, index: number): Promise<boolean> {
     if (!this.state.reserve(group, index, MotionPriority.FORCE)) {
       return false
     }
@@ -89,7 +87,7 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
     const duration = motion.getDuration()
     const currentTime = motionQueueEntry.getStartTime() + duration
 
-    motion.doUpdateParameters(model.internalModel.coreModel, currentTime, 1.0, motionQueueEntry)
+    motion.doUpdateParameters(this.parent.coreModel, currentTime, 1.0, motionQueueEntry)
     motionQueueEntry.setIsFinished(true)
     this.playing = false
 

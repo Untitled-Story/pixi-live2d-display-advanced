@@ -295,7 +295,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   ): Promise<boolean[]> {
     this.internalModel.extendParallelMotionManager(motionList.length)
     const result = motionList.map((m, idx) =>
-      this.internalModel.parallelMotionManager[idx]!.playMotionLastFrame(this, m.group, m.index)
+      this.internalModel.parallelMotionManager[idx]!.playMotionLastFrame(m.group, m.index)
     )
     const flags: boolean[] = []
     for (const r of result) {

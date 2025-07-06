@@ -307,9 +307,7 @@ export class Cubism4InternalModel extends InternalModel {
 
   extendParallelMotionManager(managerCount: number) {
     while (this.parallelMotionManager.length < managerCount) {
-      this.parallelMotionManager.push(
-        new Cubism4ParallelMotionManager(this.settings, this.motionManager)
-      )
+      this.parallelMotionManager.push(new Cubism4ParallelMotionManager(this))
     }
   }
 
