@@ -39,14 +39,15 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param options - Options for the creation.
    * @return Promise that resolves with the Live2DModel.
    */
-  static from<M extends Live2DConstructor = typeof Live2DModel>(
+  static async from<M extends Live2DConstructor = typeof Live2DModel>(
     this: M,
     source: string | JSONObject | ModelSettings,
     options?: Live2DFactoryOptions
   ): Promise<InstanceType<M>> {
     const model = new this(options) as InstanceType<M>
 
-    return Live2DFactory.setupLive2DModel(model, source, options).then(() => model)
+    await Live2DFactory.setupLive2DModel(model, source, options)
+    return model
   }
 
   /**
@@ -68,6 +69,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    *     model.motion('tap_body');
    * });
    * ```
+   * @param source - Model source, can be a file path, JSON object, or ModelSettings instance.
+   * @param options - Options for the model creation.
+   * @returns The created Live2DModel instance.
    */
   static fromSync<M extends Live2DConstructor = typeof Live2DModel>(
     this: M,
@@ -86,6 +90,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   /**
    * Registers the class of `PIXI.Ticker` for auto updating.
    * @deprecated Use {@link Live2DModelOptions.ticker} instead.
+   * @param tickerClass - The Ticker class to be registered.
    */
   static registerTicker(tickerClass: typeof Ticker): void {
     Automator['defaultTicker'] = tickerClass.shared
@@ -93,8 +98,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
   /**
    * Tag for logging.
+   * @type {string}
    */
-  tag = 'Live2DModel(uninitialized)'
+  tag: string = 'Live2DModel(uninitialized)'
 
   /**
    * The internal model. Though typed as non-nullable, it'll be undefined until the "ready" event is emitted.
@@ -103,53 +109,76 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
   /**
    * Pixi textures.
+   * @type {Texture[]}
    */
   textures: Texture[] = []
 
-  /** @override */
+  /** @override
+   * The Live2DTransform instance for this model.
+   */
   transform = new Live2DTransform()
 
   /**
    * The anchor behaves like the one in `PIXI.Sprite`, where `(0, 0)` means the top left
    * and `(1, 1)` means the bottom right.
+   * @type {ObservablePoint}
    */
-  anchor = new ObservablePoint(this.onAnchorChange, this, 0, 0) as ObservablePoint<never> // cast the type because it breaks the casting of Live2DModel
+  anchor: ObservablePoint<never> = new ObservablePoint(
+    this.onAnchorChange,
+    this,
+    0,
+    0
+  ) as ObservablePoint<never> // cast the type because it breaks the casting of Live2DModel
 
   /**
    * An ID of Gl context that syncs with `renderer.CONTEXT_UID`. Used to check if the GL context has changed.
+   * @protected
+   * @type {number}
    */
-  protected glContextID = -1
+  protected glContextID: number = -1
 
   /**
    * Elapsed time in milliseconds since created.
+   * @type {DOMHighResTimeStamp}
    */
   elapsedTime: DOMHighResTimeStamp = 0
 
   /**
    * Elapsed time in milliseconds from last frame to this frame.
+   * @type {DOMHighResTimeStamp}
    */
   deltaTime: DOMHighResTimeStamp = 0
 
+  /**
+   * The Automator instance that controls model automation.
+   * @type {Automator}
+   */
   automator: Automator
 
+  /**
+   * Creates a new Live2DModel instance.
+   * @param options - Options for Live2DModel and Automator.
+   */
   constructor(options?: Live2DModelOptions) {
     super()
 
     this.automator = new Automator(this, options)
 
-    this.once('modelLoaded', () => this.init(options))
+    this.once('modelLoaded', () => this.initializeOnModelLoad(options))
   }
 
-  // TODO: rename
   /**
    * A handler of the "modelLoaded" event, invoked when the internal model has been loaded.
+   * @protected
+   * @param _options - The options used for initialization.
    */
-  protected init(_options?: Live2DModelOptions) {
+  protected initializeOnModelLoad(_options?: Live2DModelOptions) {
     this.tag = `Live2DModel(${this.internalModel.settings.name})`
   }
 
   /**
    * A callback that observes {@link anchor}, invoked when the anchor's values have been changed.
+   * @protected
    */
   protected onAnchorChange(): void {
     this.pivot.set(
@@ -163,14 +192,14 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param group - The motion group.
    * @param [index] - Index in the motion group.
    * @param [priority=2] - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE)
-   * @param {Object} options
-   * @param [options.sound] - The audio url to file or base64 content
-   * @param [options.volume=0.5] - Volume of the sound (0-1)
-   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression())
-   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished
-   * @param [options.crossOrigin] - CORS settings for audio resources
-   * @param [options.onFinish] - Callback function when speaking completes
-   * @param [options.onError] - Callback function when an error occurs
+   * @param {Object} options - Additional options for motion.
+   * @param [options.sound] - The audio url to file or base64 content.
+   * @param [options.volume=0.5] - Volume of the sound (0-1).
+   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression()).
+   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished.
+   * @param [options.crossOrigin] - CORS settings for audio resources.
+   * @param [options.onFinish] - Callback function when speaking completes.
+   * @param [options.onError] - Callback function when an error occurs.
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
   motion(
@@ -218,11 +247,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
   /**
    * Shorthand to start multiple motions in parallel.
-   * @param motionList - The motion list: {
+   * @param motionList - The motion list, each item includes:
    *  group: The motion group,
    *  index: Index in the motion group,
-   *  priority - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
-   * }[]
+   *  priority: The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
    * @return Promise that resolves with a list, indicates the motion is successfully started, with false otherwise.
    */
   async parallelMotion(
@@ -234,9 +262,42 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   ): Promise<boolean[]> {
     this.internalModel.extendParallelMotionManager(motionList.length)
     const result = motionList.map((m, idx) =>
-      this.internalModel.parallelMotionManager[idx]?.startMotion(m.group, m.index, m.priority)
+      this.internalModel.parallelMotionManager[idx]!.startMotion(m.group, m.index, m.priority)
     )
-    const flags = []
+    const flags: boolean[] = []
+    for (const r of result) {
+      flags.push(await r!)
+    }
+    return flags
+  }
+
+  /**
+   * Shorthand to play the last frame of multiple motions in parallel and await their completion.
+   *
+   * This method initiates the final frame of each specified motion concurrently,
+   * leveraging the internal parallel motion manager. Each motion's completion is awaited
+   * sequentially, and the results are returned as an array of success flags.
+   *
+   * @async
+   * @param {{group: string, index: number, priority?: MotionPriority}[]} motionList - Array of motions to execute.
+   * @param {string} motionList.group - Motion group identifier (e.g., "idle", "walk").
+   * @param {number} motionList.index - Index within the motion group.
+   * @param {MotionPriority} [motionList.priority=2] - Motion priority (0: None, 1: IDLE, 2: NORMAL, 3: FORCE).
+   * @returns {Promise<boolean[]>} Resolves with an array where each boolean indicates
+   *                               whether the corresponding motion completed successfully.
+   */
+  async parallelLastFrame(
+    motionList: {
+      group: string
+      index: number
+      priority?: MotionPriority
+    }[]
+  ): Promise<boolean[]> {
+    this.internalModel.extendParallelMotionManager(motionList.length)
+    const result = motionList.map((m, idx) =>
+      this.internalModel.parallelMotionManager[idx]!.playMotionLastFrame(this, m.group, m.index)
+    )
+    const flags: boolean[] = []
     for (const r of result) {
       flags.push(await r!)
     }
@@ -252,15 +313,15 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
   /**
    * Shorthand to start speaking a sound with an expression.
-   * @param sound - The audio url to file or base64 content
-   * @param {Object} options
-   * @param [options.volume] - Volume of the sound (0-1)
-   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression())
-   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished、
-   * @param {string} [options.crossOrigin] - CORS settings for audio resources
-   * @param [options.onFinish] - Callback function when speaking completes
-   * @param [options.onError] - Callback function when an error occurs
-   * @returns Promise that resolves with true if the sound is playing, false if it's not
+   * @param sound - The audio url to file or base64 content.
+   * @param {Object} options - Additional options for speaking.
+   * @param [options.volume] - Volume of the sound (0-1).
+   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression()).
+   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished.
+   * @param {string} [options.crossOrigin] - CORS settings for audio resources.
+   * @param [options.onFinish] - Callback function when speaking completes.
+   * @param [options.onError] - Callback function when an error occurs.
+   * @returns Promise that resolves with true if the sound is playing, false if it's not.
    */
   speak(
     sound: string,
@@ -291,7 +352,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   }
 
   /**
-   * Stop current audio playback and lipsync
+   * Stop current audio playback and lipsync.
    */
   stopSpeaking(): void {
     return this.internalModel.motionManager.stopSpeaking()
@@ -399,7 +460,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     return this.getBounds(true).contains(point.x, point.y)
   }
 
-  /** @override */
+  /** @override
+   * Calculates the bounds of the Live2DModel for rendering and interaction purposes.
+   */
   protected _calculateBounds(): void {
     this._bounds.addFrame(this.transform, 0, 0, this.internalModel.width, this.internalModel.height)
   }
@@ -416,6 +479,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     // don't call `this.internalModel.update()` here, because it requires WebGL context
   }
 
+  /** @override
+   * Renders the Live2DModel to the renderer.
+   * @param renderer - The PixiJS Renderer instance.
+   */
   override _render(renderer: Renderer): void {
     // reset certain systems in renderer to make Live2D's drawing system compatible with Pixi
     renderer.batch.reset()
@@ -488,10 +555,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param options - Options parameter. A boolean will act as if all options
    *  have been set to that value
    * @param [options.children=false] - if set to true, all the children will have their destroy
-   *  method called as well. 'options' will be passed on to those calls.
-   * @param [options.texture=false] - Only used for child Sprites if options.children is set to true
+   *  method called as well. `options` will be passed on to those calls.
+   * @param [options.texture=false] - Only used for child Sprites if `options.children` is set to true
    *  Should it destroy the texture of the child sprite
-   * @param [options.baseTexture=false] - Only used for child Sprites if options.children is set to true
+   * @param [options.baseTexture=false] - Only used for child Sprites if `options.children` is set to true
    *  Should it destroy the base texture of the child sprite
    */
   destroy(options?: { children?: boolean; texture?: boolean; baseTexture?: boolean }): void {

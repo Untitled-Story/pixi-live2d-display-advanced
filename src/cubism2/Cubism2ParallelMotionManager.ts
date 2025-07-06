@@ -37,7 +37,6 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
     this.queueManager.stopAllMotions()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected updateParameters(model: Live2DModelWebGL, _now: DOMHighResTimeStamp): boolean {
     return this.queueManager.updateParam(model)
   }

@@ -1,7 +1,7 @@
 import type { InternalModelOptions } from '@/cubism-common'
 import type { CommonHitArea, CommonLayout } from '@/cubism-common/InternalModel'
 import { InternalModel } from '@/cubism-common/InternalModel'
-import { logger } from '../utils'
+import { logger } from '@/utils'
 import type { Cubism2ModelSettings } from './Cubism2ModelSettings'
 import { Cubism2MotionManager } from './Cubism2MotionManager'
 import { Cubism2ParallelMotionManager } from './Cubism2ParallelMotionManager'
@@ -12,11 +12,11 @@ import { clamp } from '@/utils'
 
 // prettier-ignore
 const tempMatrixArray = new Float32Array([
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1,
-]);
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1
+])
 
 export class Cubism2InternalModel extends InternalModel {
   settings: Cubism2ModelSettings
@@ -232,14 +232,7 @@ export class Cubism2InternalModel extends InternalModel {
 
     const model = this.coreModel
 
-    this.emit('beforeMotionUpdate')
-
-    const motionUpdated0 = this.motionManager.update(model, now)
-    const parallelMotionUpdated = this.parallelMotionManager.map((m) => m.update(model, now))
-    const motionUpdated =
-      motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false)
-
-    this.emit('afterMotionUpdate')
+    const motionUpdated = this.updateMotions(model, now)
 
     model.saveParam()
 

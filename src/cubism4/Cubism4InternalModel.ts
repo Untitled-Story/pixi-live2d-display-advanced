@@ -23,7 +23,7 @@ import type { CubismModelUserData } from '@cubism/model/cubismmodeluserdata'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
 import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
 import { Matrix } from '@pixi/core'
-import type { Mutable } from '../types/helpers'
+import type { Mutable } from '@/types/helpers'
 import { clamp } from '@/utils'
 
 const tempMatrix = new CubismMatrix44()
@@ -232,14 +232,7 @@ export class Cubism4InternalModel extends InternalModel {
 
     const model = this.coreModel
 
-    this.emit('beforeMotionUpdate')
-
-    const motionUpdated0 = this.motionManager.update(model, now)
-    const parallelMotionUpdated = this.parallelMotionManager.map((m) => m.update(model, now))
-    const motionUpdated =
-      motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false)
-
-    this.emit('afterMotionUpdate')
+    const motionUpdated = this.updateMotions(model, now)
 
     model.saveParameters()
 
@@ -294,7 +287,7 @@ export class Cubism4InternalModel extends InternalModel {
     this.coreModel.addParameterValueById(this.idParamMouthForm, mouthForm) // -1 ~ 1
   }
 
-  updateNaturalMovements(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp) {
+  updateNaturalMovements(dt: DOMHighResTimeStamp, _now: DOMHighResTimeStamp) {
     this.breath?.updateParameters(this.coreModel, dt / 1000)
   }
 

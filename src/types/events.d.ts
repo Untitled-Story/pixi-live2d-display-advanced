@@ -56,7 +56,7 @@ export interface Live2DModelEvents {
   load: []
 }
 
-export interface MotionManagerEvents<Motion = any> {
+export interface MotionManagerEvents<Motion = never> {
   /**
    * @event - A Motion has been loaded.
    * @param - The Motion instance, varies in different Cubism version.
@@ -75,7 +75,7 @@ export interface MotionManagerEvents<Motion = any> {
   destroy: []
 }
 
-export interface ExpressionManagerEvents<Expression = any> {
+export interface ExpressionManagerEvents<Expression = never> {
   /**
    * @event - An Expression has been loaded.
    * @param - The Expression instance, varies in different Cubism version.

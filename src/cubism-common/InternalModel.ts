@@ -267,16 +267,15 @@ export abstract class InternalModel extends utils.EventEmitter {
    * @param dt - Elapsed time in milliseconds from last frame.
    * @param _now - Current time in milliseconds.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(dt: DOMHighResTimeStamp, _now: DOMHighResTimeStamp): void {
     this.focusController.update(dt)
   }
 
   /**
    * Destroys the model and all related resources.
-   * @emits {@link InternalModelEvents.destroy | destroy}
+   * @emits {@link `InternalModelEvents.destroy` | destroy}
    */
-  destroy() {
+  destroy(): void {
     this.destroyed = true
     this.emit('destroy')
 
@@ -284,6 +283,36 @@ export abstract class InternalModel extends utils.EventEmitter {
     ;(this as Partial<this>).motionManager = undefined
     this.parallelMotionManager.forEach((m) => m.destroy())
     this.parallelMotionManager = []
+  }
+
+  // noinspection JSValidateJSDoc
+  /**
+   * Updates all active motions for the model and emits lifecycle events.
+   *
+   * This method coordinates the update cycle for both primary and parallel motion managers,
+   * ensuring all animations are synchronized with the current timestamp. It emits events
+   * before and after the update process, allowing external listeners to hook into the motion
+   * lifecycle. The return value indicates whether any motion was actively updated during this cycle.
+   *
+   * @param {object} model - The model instance to apply motion updates to.
+   * @param {number} now - The current timestamp (in milliseconds) used to calculate motion progress.
+   * @returns {boolean} Returns `true` if any motion (primary or parallel) was updated; `false` otherwise.
+   *
+   * @emits beforeMotionUpdate - Triggered before any motion updates are processed.
+   * @emits afterMotionUpdate - Triggered after all motion updates are completed.
+   *
+   */
+  updateMotions(model: object, now: number): boolean {
+    this.emit('beforeMotionUpdate')
+
+    const motionUpdated0 = this.motionManager.update(model, now)
+    const parallelMotionUpdated = this.parallelMotionManager.map((m) => m.update(model, now))
+    const motionUpdated =
+      motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false)
+
+    this.emit('afterMotionUpdate')
+
+    return motionUpdated
   }
 
   /**
