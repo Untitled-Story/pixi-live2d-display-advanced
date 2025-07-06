@@ -302,7 +302,7 @@ export abstract class InternalModel extends utils.EventEmitter {
    * @emits afterMotionUpdate - Triggered after all motion updates are completed.
    *
    */
-  updateMotions(model: object, now: number): boolean {
+  protected updateMotions(model: object, now: number): boolean {
     this.emit('beforeMotionUpdate')
 
     const motionUpdated0 = this.motionManager.update(model, now)

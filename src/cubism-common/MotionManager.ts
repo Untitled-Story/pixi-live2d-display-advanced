@@ -252,7 +252,7 @@ export abstract class MotionManager<
    * @param audio - The HTMLAudioElement to initialize.
    * @param volume - The playback volume (0-1).
    */
-  initializeAudio(audio: HTMLAudioElement, volume: number) {
+  protected initializeAudio(audio: HTMLAudioElement, volume: number) {
     this.currentAudio = audio!
     SoundManager.volume = volume
 
