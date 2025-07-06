@@ -22,6 +22,7 @@ const tempMatrix = new Matrix()
 
 export type Live2DConstructor = { new (options?: Live2DModelOptions): Live2DModel }
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * A wrapper that allows the Live2D model to be used as a DisplayObject in PixiJS.
  *
@@ -50,7 +51,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
   /**
    * Synchronous version of `Live2DModel.from()`. This method immediately returns a Live2DModel instance,
-   * whose resources have not been loaded. Therefore this model can't be manipulated or rendered
+   * whose resources have not been loaded. Therefore, this model can't be manipulated or rendered
    * until the "load" event has been emitted.
    *
    * ```js
@@ -112,7 +113,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * The anchor behaves like the one in `PIXI.Sprite`, where `(0, 0)` means the top left
    * and `(1, 1)` means the bottom right.
    */
-  anchor = new ObservablePoint(this.onAnchorChange, this, 0, 0) as ObservablePoint<any> // cast the type because it breaks the casting of Live2DModel
+  anchor = new ObservablePoint(this.onAnchorChange, this, 0, 0) as ObservablePoint<never> // cast the type because it breaks the casting of Live2DModel
 
   /**
    * An ID of Gl context that syncs with `renderer.CONTEXT_UID`. Used to check if the GL context has changed.
@@ -143,7 +144,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   /**
    * A handler of the "modelLoaded" event, invoked when the internal model has been loaded.
    */
-  protected init(options?: Live2DModelOptions) {
+  protected init(_options?: Live2DModelOptions) {
     this.tag = `Live2DModel(${this.internalModel.settings.name})`
   }
 
@@ -160,13 +161,16 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   /**
    * Shorthand to start a motion.
    * @param group - The motion group.
-   * @param index - Index in the motion group.
-   * @param priority - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
-   * ### OPTIONAL: `{name: value, ...}`
-   * @param sound - The audio url to file or base64 content
-   * @param volume - Volume of the sound (0-1) (default: 0.5)
-   * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
-   * @param resetExpression - Reset the expression to default after the motion is finished (default: true)
+   * @param [index] - Index in the motion group.
+   * @param [priority=2] - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE)
+   * @param {Object} options
+   * @param [options.sound] - The audio url to file or base64 content
+   * @param [options.volume=0.5] - Volume of the sound (0-1)
+   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression())
+   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished
+   * @param [options.crossOrigin] - CORS settings for audio resources
+   * @param [options.onFinish] - Callback function when speaking completes
+   * @param [options.onError] - Callback function when an error occurs
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
   motion(
@@ -249,10 +253,13 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   /**
    * Shorthand to start speaking a sound with an expression.
    * @param sound - The audio url to file or base64 content
-   * ### OPTIONAL: {name: value, ...}
-   * @param volume - Volume of the sound (0-1)
-   * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
-   * @param resetExpression - Reset the expression to default after the motion is finished (default: true)
+   * @param {Object} options
+   * @param [options.volume] - Volume of the sound (0-1)
+   * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression())
+   * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished、
+   * @param {string} [options.crossOrigin] - CORS settings for audio resources
+   * @param [options.onFinish] - Callback function when speaking completes
+   * @param [options.onError] - Callback function when an error occurs
    * @returns Promise that resolves with true if the sound is playing, false if it's not
    */
   speak(
@@ -369,9 +376,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       this._recursivePostUpdateTransform()
 
       if (!this.parent) {
-        ;(this.parent as any) = this._tempDisplayObjectParent
+        ;(this.parent as unknown) = this._tempDisplayObjectParent
         this.displayObjectUpdateTransform()
-        ;(this.parent as any) = null
+        ;(this.parent as unknown) = null
       } else {
         this.displayObjectUpdateTransform()
       }
@@ -419,8 +426,8 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     let shouldUpdateTexture = false
 
     // when the WebGL context has changed
-    if (this.glContextID !== (renderer as any).CONTEXT_UID) {
-      this.glContextID = (renderer as any).CONTEXT_UID
+    if (this.glContextID !== renderer.CONTEXT_UID) {
+      this.glContextID = renderer.CONTEXT_UID
 
       this.internalModel.updateWebGLContext(renderer.gl, this.glContextID)
 
@@ -434,7 +441,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
         continue
       }
 
-      if (shouldUpdateTexture || !(texture.baseTexture as any)._glTextures[this.glContextID]) {
+      if (shouldUpdateTexture || !texture.baseTexture._glTextures[this.glContextID]) {
         renderer.gl.pixelStorei(
           WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL,
           this.internalModel.textureFlipY
@@ -448,16 +455,13 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       // because the Texture in Pixi can be shared between multiple DisplayObjects,
       // it's unable to know if the WebGLTexture in this Texture has been destroyed (GCed) and regenerated,
       // and therefore we always bind the texture at this moment no matter what
-      this.internalModel.bindTexture(
-        i,
-        (texture.baseTexture as any)._glTextures[this.glContextID].texture
-      )
+      this.internalModel.bindTexture(i, texture.baseTexture._glTextures[this.glContextID]!.texture)
 
       // manually update the GC counter so they won't be GCed while using this model
-      ;(texture.baseTexture as any).touched = renderer.textureGC.count
+      texture.baseTexture.touched = renderer.textureGC.count
     }
 
-    const viewport = (renderer.framebuffer as any).viewport as Rectangle
+    const viewport = renderer.framebuffer.viewport as Rectangle
     this.internalModel.viewport = [viewport.x, viewport.y, viewport.width, viewport.height]
 
     // update only if the time has changed, as the model will possibly be updated once but rendered multiple times

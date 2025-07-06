@@ -62,7 +62,7 @@ export default defineConfig([
           disallowTypeAnnotations: false
         }
       ],
-
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'prettier/prettier': 'warn',
       'arrow-body-style': 'off',
       'prefer-arrow-callback': 'off'
