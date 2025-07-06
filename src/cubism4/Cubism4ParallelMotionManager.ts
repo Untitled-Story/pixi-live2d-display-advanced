@@ -9,6 +9,7 @@ import type { Mutable } from '@/types/helpers'
 import { MotionPriority } from '@/cubism-common'
 import type { Cubism4InternalModel } from '@/cubism4/Cubism4InternalModel'
 import { motionSkipToLastFrame } from '@/utils/motion'
+import { logger } from '@/utils'
 
 export class Cubism4ParallelMotionManager extends ParallelMotionManager<
   CubismMotion,
@@ -70,10 +71,12 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
       return false
     }
 
-    const motion = await this.manager.loadMotion(group, index)
+    const motion = (await this.manager.loadMotion(group, index)) as CubismMotion
     if (!this.state.start(motion, group, index, MotionPriority.FORCE)) {
       return false
     }
+
+    logger.log(this.tag, 'Start motion:', this.getMotionName(definition as CubismSpec.Motion))
 
     this.emit('motionStart', group, index, undefined)
 

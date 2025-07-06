@@ -5,6 +5,7 @@ import './patch-motion'
 import { MotionPriority } from '@/cubism-common'
 import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
 import { motionSkipToLastFrame } from '@/utils/motion'
+import { logger } from '@/utils'
 
 export class Cubism2ParallelMotionManager extends ParallelMotionManager<
   Live2DMotion,
@@ -59,6 +60,8 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
     if (!this.state.start(motion, group, index, MotionPriority.FORCE)) {
       return false
     }
+
+    logger.log(this.tag, 'Start motion:', this.getMotionName(definition as Cubism2Spec.Motion))
 
     this.queueManager.stopAllMotions()
 
