@@ -19,7 +19,6 @@ import { CubismEyeBlink } from '@cubism/effect/cubismeyeblink'
 import type { CubismPose } from '@cubism/effect/cubismpose'
 import { CubismMatrix44 } from '@cubism/math/cubismmatrix44'
 import type { CubismModel } from '@cubism/model/cubismmodel'
-import type { CubismModelUserData } from '@cubism/model/cubismmodeluserdata'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
 import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
 import { Matrix } from '@pixi/core'
@@ -28,6 +27,7 @@ import { clamp } from '@/utils'
 
 const tempMatrix = new CubismMatrix44()
 
+// noinspection JSUnusedGlobalSymbols
 export class Cubism4InternalModel extends InternalModel {
   settings: Cubism4ModelSettings
   options: InternalModelOptions
