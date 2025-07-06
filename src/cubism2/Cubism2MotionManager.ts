@@ -3,9 +3,11 @@ import type { MotionManagerOptions } from '@/cubism-common/MotionManager'
 import { MotionManager } from '@/cubism-common/MotionManager'
 import { Cubism2ExpressionManager } from '@/cubism2/Cubism2ExpressionManager'
 import type { Cubism2ModelSettings } from '@/cubism2/Cubism2ModelSettings'
-import type { Cubism2Spec } from '../types/Cubism2Spec'
-import type { Mutable } from '../types/helpers'
+import type { Cubism2Spec } from '@/types/Cubism2Spec'
+import type { Mutable } from '@/types/helpers'
 import './patch-motion'
+import { motionSkipToLastFrame } from '@/utils/motion'
+import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
 
 export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spec.Motion> {
   readonly definitions: Partial<Record<string, Cubism2Spec.Motion[]>>
@@ -22,12 +24,12 @@ export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spe
 
   expressionManager?: Cubism2ExpressionManager
 
-  constructor(settings: Cubism2ModelSettings, options?: MotionManagerOptions) {
-    super(settings, options)
+  constructor(parent: Cubism2InternalModel) {
+    super(parent)
 
     this.definitions = this.settings.motions
 
-    this.init(options)
+    this.init(parent.options)
 
     this.lipSyncIds = ['PARAM_MOUTH_OPEN_Y']
   }
@@ -80,12 +82,35 @@ export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spe
     this.queueManager.stopAllMotions()
   }
 
-  protected updateParameters(model: Live2DModelWebGL, now: DOMHighResTimeStamp): boolean {
+  protected updateParameters(model: Live2DModelWebGL, _now: DOMHighResTimeStamp): boolean {
     return this.queueManager.updateParam(model)
   }
 
   destroy() {
     super.destroy()
     ;(this as Partial<Mutable<this>>).queueManager = undefined
+  }
+
+  async motionLastFrame(
+    group: string,
+    index: number,
+    {
+      expression = undefined
+    }: {
+      expression?: number | string
+    } = {}
+  ): Promise<boolean> {
+    const motion = await this.getMotionAndApplyExpression(group, index, expression)
+
+    if (!motion) {
+      return false
+    }
+
+    this.playing = true
+
+    motionSkipToLastFrame(this.queueManager, this.parent, motion as Live2DMotion)
+
+    this.playing = false
+    return true
   }
 }

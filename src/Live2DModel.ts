@@ -202,7 +202,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param [options.onError] - Callback function when an error occurs.
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
-  motion(
+  async motion(
     group: string,
     index?: number,
     priority?: MotionPriority,
@@ -224,25 +224,39 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       onError?: (e: Error) => void
     } = {}
   ): Promise<boolean> {
-    return index === undefined
-      ? this.internalModel.motionManager.startRandomMotion(group, priority, {
-          sound: sound,
-          volume: volume,
-          expression: expression,
-          resetExpression: resetExpression,
-          crossOrigin: crossOrigin,
-          onFinish: onFinish,
-          onError: onError
-        })
-      : this.internalModel.motionManager.startMotion(group, index, priority, {
-          sound: sound,
-          volume: volume,
-          expression: expression,
-          resetExpression: resetExpression,
-          crossOrigin: crossOrigin,
-          onFinish: onFinish,
-          onError: onError
-        })
+    if (index === undefined) {
+      return this.internalModel.motionManager.startRandomMotion(group, priority, {
+        sound: sound,
+        volume: volume,
+        expression: expression,
+        resetExpression: resetExpression,
+        crossOrigin: crossOrigin,
+        onFinish: onFinish,
+        onError: onError
+      })
+    } else {
+      return this.internalModel.motionManager.startMotion(group, index, priority, {
+        sound: sound,
+        volume: volume,
+        expression: expression,
+        resetExpression: resetExpression,
+        crossOrigin: crossOrigin,
+        onFinish: onFinish,
+        onError: onError
+      })
+    }
+  }
+
+  async motionLastFrame(
+    group: string,
+    id: number,
+    {
+      expression = undefined
+    }: {
+      expression?: number | string
+    } = {}
+  ): Promise<boolean> {
+    return this.internalModel.motionManager.motionLastFrame(group, id, { expression: expression })
   }
 
   /**

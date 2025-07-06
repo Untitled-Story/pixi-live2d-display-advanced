@@ -76,7 +76,7 @@ export class Cubism4InternalModel extends InternalModel {
     this.coreModel = coreModel
     this.settings = settings
     this.options = Object.assign({}, { breathDepth: 1 }, options)
-    this.motionManager = new Cubism4MotionManager(settings, options)
+    this.motionManager = new Cubism4MotionManager(this)
     this.parallelMotionManager = []
 
     this.init()

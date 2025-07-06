@@ -4,6 +4,7 @@ import type { Mutable } from '@/types/helpers'
 import './patch-motion'
 import { MotionPriority } from '@/cubism-common'
 import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
+import { motionSkipToLastFrame } from '@/utils/motion'
 
 export class Cubism2ParallelMotionManager extends ParallelMotionManager<
   Live2DMotion,
@@ -65,19 +66,9 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
 
     this.playing = true
 
-    const duration = motion.getDurationMSec()
-
-    const motionQueueEntNo = this.queueManager.startMotion(motion, true)
-
-    const motionQueueEnt = this.queueManager.motions.find(
-      (entry) => entry && entry._$sr === motionQueueEntNo
-    )
-
-    if (!motionQueueEnt) {
+    if (!motionSkipToLastFrame(this.queueManager, this.parent, motion)) {
       return false
     }
-
-    motion.updateParamExe(this.parent.coreModel as Live2DModelWebGL, duration, 1.0, motionQueueEnt)
 
     this.playing = false
     return true

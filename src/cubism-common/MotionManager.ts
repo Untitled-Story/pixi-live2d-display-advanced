@@ -5,7 +5,8 @@ import { MotionPriority, MotionState } from '@/cubism-common/MotionState'
 import { SoundManager, VOLUME } from '@/cubism-common/SoundManager'
 import { logger } from '@/utils'
 import { utils } from '@pixi/core'
-import type { JSONObject, Mutable } from '../types/helpers'
+import type { JSONObject, Mutable } from '@/types/helpers'
+import type { InternalModel } from '@/cubism-common/InternalModel'
 
 export interface MotionManagerOptions {
   /**
@@ -36,40 +37,54 @@ export enum MotionPreloadStrategy {
 }
 
 /**
- * Handles the motion playback.
+ * Handles the motion playback for Live2D models.
+ * Responsible for loading, playing, and managing motion states and audio.
  * @emits {@link MotionManagerEvents}
  */
-export abstract class MotionManager<Motion = any, MotionSpec = any> extends utils.EventEmitter {
+export abstract class MotionManager<
+  Motion = unknown,
+  MotionSpec = unknown
+> extends utils.EventEmitter {
   /**
    * Tag for logging.
+   * @type {string}
    */
   tag: string
 
+  // noinspection JSValidateJSDoc
   /**
    * Motion definitions copied from ModelSettings.
+   * @type {Partial<Record<string, MotionSpec[]>>}
+   * @abstract
    */
   abstract readonly definitions: Partial<Record<string, MotionSpec[]>>
 
   /**
-   * Motion groups with particular internal usages. Currently there's only the `idle` field,
-   * which specifies the actual name of the idle motion group, so the idle motions
-   * can be correctly found from the settings JSON of various Cubism versions.
+   * Motion groups with specific internal usages. Includes at least the 'idle' field.
+   * @type {{ idle: string }}
+   * @abstract
    */
   abstract readonly groups: { idle: string }
 
   /**
    * Indicates the content type of the motion files, varies in different Cubism versions.
-   * This will be used as `xhr.responseType`.
+   * Used as `xhr.responseType`.
+   * @type {'json' | 'arraybuffer'}
+   * @abstract
    */
   abstract readonly motionDataType: 'json' | 'arraybuffer'
 
   /**
-   * Can be undefined if the settings defines no expression.
+   * Expression manager for handling model expressions.
+   * Can be undefined if the settings define no expression.
+   * @type {ExpressionManager | undefined}
+   * @abstract
    */
   abstract expressionManager?: ExpressionManager
 
   /**
    * The ModelSettings reference.
+   * @type {ModelSettings}
    */
   readonly settings: ModelSettings
 
@@ -78,48 +93,67 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
    * an empty array, which means all motions will be `undefined`. When a Motion has been loaded,
    * it'll fill the place in which it should be; when it fails to load, the place will be filled
    * with `null`.
+   * @type {Partial<Record<string, (Motion | undefined | null)[]>>}
    */
   motionGroups: Partial<Record<string, (Motion | undefined | null)[]>> = {}
 
   /**
    * Maintains the state of this MotionManager.
+   * @type {MotionState}
    */
-  state = new MotionState()
+  state: MotionState = new MotionState()
 
   /**
    * Audio element of the current motion if a sound file is defined with it.
+   * @type {HTMLAudioElement | undefined}
    */
   currentAudio?: HTMLAudioElement
 
   /**
    * Analyzer element for the current sound being played.
+   * @type {AnalyserNode | undefined}
    */
   currentAnalyzer?: AnalyserNode
 
   /**
    * Context element for the current sound being played.
+   * @type {AudioContext | undefined}
    */
   currentContext?: AudioContext
 
   /**
-   * Flags there's a motion playing.
+   * Flags whether there is a motion currently playing.
+   * @type {boolean}
    */
-  playing = false
+  playing: boolean = false
 
   /**
-   * Flags the instances has been destroyed.
+   * Flags whether the instance has been destroyed.
+   * @type {boolean}
    */
-  destroyed = false
+  destroyed: boolean = false
 
-  protected constructor(settings: ModelSettings, options?: MotionManagerOptions) {
+  /**
+   * Reference to the parent InternalModel.
+   * @type {InternalModel}
+   */
+  parent: InternalModel
+
+  /**
+   * Constructor for MotionManager.
+   * @param parent - The parent InternalModel.
+   */
+  protected constructor(parent: InternalModel) {
     super()
-    this.settings = settings
-    this.tag = `MotionManager(${settings.name})`
+    this.settings = parent.settings
+    this.tag = `MotionManager(${this.settings.name})`
     this.state.tag = this.tag
+    this.parent = parent
   }
 
   /**
-   * Should be called in the constructor of derived class.
+   * Should be called in the constructor of derived class to initialize options and setup motions.
+   * @param options - Initialization options for the manager.
    */
   protected init(options?: MotionManagerOptions) {
     if (options?.idleMotionGroup) {
@@ -132,6 +166,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
 
   /**
    * Sets up motions from the definitions, and preloads them according to the preload strategy.
+   * @param options - Options controlling which motions to preload.
    */
   protected setupMotions(options?: MotionManagerOptions): void {
     for (const group of Object.keys(this.definitions)) {
@@ -208,19 +243,34 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
    * Loads the Motion. Will be implemented by Live2DFactory in order to avoid circular dependency.
    * @ignore
    */
-  private _loadMotion(group: string, index: number): Promise<Motion | undefined> {
+  private _loadMotion(_group: string, _index: number): Promise<Motion | undefined> {
     throw new Error('Not implemented.')
   }
 
   /**
-   * Only play sound with lip sync
-   * @param sound - The audio url to file or base64 content
-   * ### OPTIONAL: {name: value, ...}
-   * @param volume - Volume of the sound (0-1)
-   * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
-   * @param resetExpression - Reset expression before and after playing sound (default: true)
+   * Initializes audio playback and sets up audio analysis for lipsync.
+   * @param audio - The HTMLAudioElement to initialize.
+   * @param volume - The playback volume (0-1).
+   */
+  initializeAudio(audio: HTMLAudioElement, volume: number) {
+    this.currentAudio = audio!
+    SoundManager.volume = volume
+
+    this.currentContext = SoundManager.addContext(this.currentAudio)
+
+    this.currentAnalyzer = SoundManager.addAnalyzer(this.currentAudio, this.currentContext)
+  }
+
+  /**
+   * Only play sound with lip sync.
+   * @param sound - The audio url or base64 content.
+   * @param volume - Volume of the sound (0-1).
+   * @param expression - Expression to apply while playing sound.
+   * @param resetExpression - Whether to reset the expression before and after playing sound (default: true).
    * @param crossOrigin - Cross origin setting.
-   * @returns Promise that resolves with true if the sound is playing, false if it's not
+   * @param onFinish - Callback when playback finishes.
+   * @param onError - Callback when playback errors.
+   * @returns Promise that resolves with true if the sound is playing, false otherwise.
    */
   async speak(
     sound: string,
@@ -245,8 +295,6 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
     }
 
     let audio: HTMLAudioElement | undefined
-    let analyzer: AnalyserNode | undefined
-    let context: AudioContext | undefined
 
     if (this.currentAudio) {
       if (!this.currentAudio.ended) {
@@ -260,10 +308,9 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
       const A = document.createElement('a')
       A.href = sound
       sound = A.href // This should be the absolute url
-      // since resolveURL is not working for some reason
       soundURL = sound
     } else {
-      soundURL = 'data:audio/' // This is a dummy url to avoid showing the entire base64 content in logger.warn
+      soundURL = 'data:audio/' // Dummy url for base64
     }
     const file: string | undefined = sound
     if (file) {
@@ -274,38 +321,25 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
           (that = this) => {
             logger.warn(this.tag, 'Audio finished playing')
             onFinish?.()
-            resetExpression &&
-              expression &&
-              that.expressionManager &&
+            if (resetExpression && expression && that.expressionManager) {
               that.expressionManager.resetExpression()
+            }
             that.currentAudio = undefined
           }, // reset expression when audio is done
           (e, that = this) => {
             logger.error(this.tag, 'Error during audio playback:', e)
             onError?.(e)
-            resetExpression &&
-              expression &&
-              that.expressionManager &&
+            if (resetExpression && expression && that.expressionManager) {
               that.expressionManager.resetExpression()
+            }
             that.currentAudio = undefined
           }, // on error
           crossOrigin
         )
 
-        this.currentAudio = audio!
-
-        SoundManager.volume = volume
-
-        // Add context
-        context = SoundManager.addContext(this.currentAudio)
-        this.currentContext = context
-
-        // Add analyzer
-        analyzer = SoundManager.addAnalyzer(this.currentAudio, this.currentContext)
-        this.currentAnalyzer = analyzer
+        this.initializeAudio(audio, volume)
       } catch (e) {
         logger.warn(this.tag, 'Failed to create audio', soundURL, e)
-
         return false
       }
     }
@@ -328,10 +362,10 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
     }
 
     if (this.state.shouldOverrideExpression()) {
-      this.expressionManager && this.expressionManager.resetExpression()
+      if (this.expressionManager) this.expressionManager.resetExpression()
     }
     if (expression && this.expressionManager) {
-      this.expressionManager.setExpression(expression)
+      await this.expressionManager.setExpression(expression)
     }
 
     this.playing = true
@@ -340,17 +374,18 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
   }
 
   /**
-   * Starts a motion as given priority.
+   * Starts a motion with the given priority.
    * @param group - The motion group.
    * @param index - Index in the motion group.
-   * @param priority - The priority to be applied. default: 2 (NORMAL)
-   * ### OPTIONAL: {name: value, ...}
-   * @param sound - The audio url to file or base64 content
-   * @param volume - Volume of the sound (0-1)
-   * @param expression - In case you want to mix up a expression while playing sound (bind with Model.expression())
-   * @param resetExpression - Reset expression before and after playing sound (default: true)
+   * @param priority - The priority to be applied. Default: NORMAL (2).
+   * @param sound - The audio url or base64 content.
+   * @param volume - Volume of the sound (0-1).
+   * @param expression - Expression to apply while playing sound.
+   * @param resetExpression - Whether to reset the expression before and after playing sound (default: true).
    * @param crossOrigin - Cross origin setting.
-   * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
+   * @param onFinish - Callback when playback finishes.
+   * @param onError - Callback when playback errors.
+   * @return Promise that resolves with true if the motion is successfully started, false otherwise.
    */
   async startMotion(
     group: string,
@@ -396,8 +431,6 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
     }
 
     let audio: HTMLAudioElement | undefined
-    let analyzer: AnalyserNode | undefined
-    let context: AudioContext | undefined
 
     let soundURL: string | undefined
     const isBase64Content = sound && sound.startsWith('data:')
@@ -406,7 +439,6 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
       const A = document.createElement('a')
       A.href = sound
       sound = A.href // This should be the absolute url
-      // since resolveURL is not working for some reason
       soundURL = sound
     } else {
       soundURL = this.getSoundFile(definition)
@@ -422,38 +454,24 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
         audio = SoundManager.add(
           file,
           (that = this) => {
-            //logger.log(this.tag, 'Audio finished playing'); // Add this line
             onFinish?.()
-            //logger.log(this.tag, onFinish)
-            resetExpression &&
-              expression &&
-              that.expressionManager &&
+            if (resetExpression && expression && that.expressionManager) {
               that.expressionManager.resetExpression()
+            }
             that.currentAudio = undefined
           }, // reset expression when audio is done
           (e, that = this) => {
-            logger.error(this.tag, 'Error during audio playback:', e) // Add this line
+            logger.error(this.tag, 'Error during audio playback:', e)
             onError?.(e)
-            resetExpression &&
-              expression &&
-              that.expressionManager &&
+            if (resetExpression && expression && that.expressionManager) {
               that.expressionManager.resetExpression()
+            }
             that.currentAudio = undefined
           }, // on error
           crossOrigin
         )
 
-        this.currentAudio = audio!
-
-        SoundManager.volume = volume
-
-        // Add context
-        context = SoundManager.addContext(this.currentAudio)
-        this.currentContext = context
-
-        // Add analyzer
-        analyzer = SoundManager.addAnalyzer(this.currentAudio, this.currentContext)
-        this.currentAnalyzer = analyzer
+        this.initializeAudio(audio, volume)
       } catch (e) {
         logger.warn(this.tag, 'Failed to create audio', soundURL, e)
       }
@@ -482,7 +500,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
     }
 
     if (this.state.shouldOverrideExpression()) {
-      this.expressionManager && this.expressionManager.resetExpression()
+      if (this.expressionManager) this.expressionManager.resetExpression()
     }
 
     logger.log(this.tag, 'Start motion:', this.getMotionName(definition))
@@ -490,7 +508,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
     this.emit('motionStart', group, index, audio)
 
     if (expression && this.expressionManager && this.state.shouldOverrideExpression()) {
-      this.expressionManager.setExpression(expression)
+      await this.expressionManager.setExpression(expression)
     }
 
     this.playing = true
@@ -503,13 +521,15 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
   /**
    * Starts a random Motion as given priority.
    * @param group - The motion group.
-   * @param priority - The priority to be applied. (default: 1 `IDLE`)
-   * ### OPTIONAL: {name: value, ...}
-   * @param sound - The wav url file or base64 content+
-   * @param volume - Volume of the sound (0-1) (default: 1)
-   * @param expression - In case you want to mix up a expression while playing sound (name/index)
-   * @param resetExpression - Reset expression before and after playing sound (default: true)
-   * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
+   * @param priority - The priority to be applied. Default: IDLE (1).
+   * @param sound - The audio url or base64 content.
+   * @param volume - Volume of the sound (0-1).
+   * @param expression - Expression to apply while playing sound.
+   * @param resetExpression - Whether to reset the expression before and after playing sound (default: true).
+   * @param crossOrigin - Cross origin setting.
+   * @param onFinish - Callback when playback finishes.
+   * @param onError - Callback when playback errors.
+   * @return Promise that resolves with true if the motion is successfully started, false otherwise.
    */
   async startRandomMotion(
     group: string,
@@ -562,7 +582,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
   }
 
   /**
-   * Stop current audio playback and lipsync
+   * Stops current audio playback and lipsync.
    */
   stopSpeaking(): void {
     if (this.currentAudio) {
@@ -611,8 +631,8 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
   }
 
   /**
-   * Move the mouth
-   *
+   * Move the mouth for lipsync.
+   * @returns The current lipsync value.
    */
   mouthSync(): number {
     if (this.currentAnalyzer) {
@@ -623,7 +643,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
   }
 
   /**
-   * Destroys the instance.
+   * Destroys the instance and releases all resources.
    * @emits {@link MotionManagerEvents.destroy}
    */
   destroy() {
@@ -640,6 +660,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
 
   /**
    * Checks if the motion playback has finished.
+   * @abstract
    */
   abstract isFinished(): boolean
 
@@ -648,7 +669,8 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
    * @param data - Content of the motion file. The format must be consistent with {@link MotionManager#motionDataType}.
    * @param group - The motion group.
    * @param definition - The motion definition.
-   * @return The created Motion.
+   * @returns The created Motion.
+   * @abstract
    */
   abstract createMotion(
     data: ArrayBuffer | JSONObject,
@@ -658,29 +680,44 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
 
   /**
    * Retrieves the motion's file path by its definition.
-   * @return The file path extracted from given definition. Not resolved.
+   * @param definition - Motion definition.
+   * @returns The file path extracted from the given definition. Not resolved.
+   * @abstract
    */
   abstract getMotionFile(definition: MotionSpec): string
 
   /**
    * Retrieves the motion's name by its definition.
-   * @return The motion's name.
+   * @param definition - Motion definition.
+   * @returns The motion's name.
+   * @protected
+   * @abstract
    */
   protected abstract getMotionName(definition: MotionSpec): string
 
   /**
    * Retrieves the motion's sound file by its definition.
-   * @return The motion's sound file, can be undefined.
+   * @param definition - Motion definition.
+   * @returns The motion's sound file, or undefined.
+   * @protected
+   * @abstract
    */
   protected abstract getSoundFile(definition: MotionSpec): string | undefined
 
   /**
    * Starts the Motion.
+   * @param motion - The Motion to start.
+   * @param onFinish - Optional callback when finished.
+   * @returns An ID or token for the motion.
+   * @protected
+   * @abstract
    */
   protected abstract _startMotion(motion: Motion, onFinish?: (motion: Motion) => void): number
 
   /**
    * Stops all playing motions.
+   * @protected
+   * @abstract
    */
   protected abstract _stopAllMotions(): void
 
@@ -689,6 +726,74 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
    * @param model - The core model.
    * @param now - Current time in milliseconds.
    * @return True if the parameters have been actually updated.
+   * @protected
+   * @abstract
    */
   protected abstract updateParameters(model: object, now: DOMHighResTimeStamp): boolean
+
+  /**
+   * Loads a motion and applies the given expression with FORCE priority.
+   * @param group - The motion group.
+   * @param index - The motion index.
+   * @param expression - Expression to apply (optional).
+   * @returns The loaded motion, or null if not started.
+   * @protected
+   */
+  protected async getMotionAndApplyExpression(
+    group: string,
+    index: number,
+    expression?: number | string
+  ): Promise<unknown> {
+    if (!this.state.reserve(group, index, MotionPriority.FORCE)) {
+      return null
+    }
+
+    const definition = this.definitions[group]?.[index]
+
+    if (!definition) {
+      return null
+    }
+
+    if (this.currentAudio) {
+      SoundManager.dispose(this.currentAudio)
+    }
+
+    const motion = (await this.loadMotion(group, index)) as Live2DMotion
+
+    if (!this.state.start(motion, group, index, MotionPriority.FORCE)) {
+      return null
+    }
+
+    if (this.state.shouldOverrideExpression()) {
+      if (this.expressionManager) this.expressionManager.resetExpression()
+    }
+
+    logger.log(this.tag, 'Start motion:', this.getMotionName(definition))
+
+    this.emit('motionStart', group, index, undefined)
+
+    if (expression && this.expressionManager && this.state.shouldOverrideExpression()) {
+      await this.expressionManager.setExpression(expression)
+    }
+
+    return motion
+  }
+
+  /**
+   * Play the last frame of the given motion, optionally applying an expression.
+   * @param group - Motion group.
+   * @param index - Motion index.
+   * @param expression - Expression to apply (optional).
+   * @returns Promise resolving to true if successful.
+   * @abstract
+   */
+  abstract motionLastFrame(
+    group: string,
+    index: number,
+    {
+      expression
+    }: {
+      expression?: number | string
+    }
+  ): Promise<boolean>
 }

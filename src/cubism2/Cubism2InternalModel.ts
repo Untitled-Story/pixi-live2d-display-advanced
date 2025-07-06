@@ -68,7 +68,7 @@ export class Cubism2InternalModel extends InternalModel {
     this.coreModel = coreModel
     this.settings = settings
     this.options = Object.assign({}, { breathDepth: 1 }, options)
-    this.motionManager = new Cubism2MotionManager(settings, options)
+    this.motionManager = new Cubism2MotionManager(this)
     this.parallelMotionManager = []
     this.eyeBlink = new Live2DEyeBlink(coreModel)
 

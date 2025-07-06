@@ -9,7 +9,9 @@ import type { ACubismMotion } from '@cubism/motion/acubismmotion'
 import { CubismMotion } from '@cubism/motion/cubismmotion'
 import { CubismMotionJson } from '@cubism/motion/cubismmotionjson'
 import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanager'
-import type { Mutable } from '../types/helpers'
+import type { Mutable } from '@/types/helpers'
+import { motionSkipToLastFrame } from '@/utils/motion'
+import type { Cubism4InternalModel } from '@/cubism4/Cubism4InternalModel'
 
 export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec.Motion> {
   readonly definitions: Partial<Record<string, CubismSpec.Motion[]>>
@@ -27,18 +29,18 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
   eyeBlinkIds: string[]
   lipSyncIds = ['ParamMouthOpenY']
 
-  constructor(settings: Cubism4ModelSettings, options?: MotionManagerOptions) {
-    super(settings, options)
+  constructor(parent: Cubism4InternalModel) {
+    super(parent)
 
-    this.definitions = settings.motions ?? {}
-    this.eyeBlinkIds = settings.getEyeBlinkParameters() || []
+    this.definitions = parent.settings.motions ?? {}
+    this.eyeBlinkIds = parent.settings.getEyeBlinkParameters() || []
 
-    const lipSyncIds = settings.getLipSyncParameters()
+    const lipSyncIds = parent.settings.getLipSyncParameters()
 
     if (lipSyncIds?.length) {
       this.lipSyncIds = lipSyncIds
     }
-    this.init(options)
+    this.init(parent.options)
   }
 
   protected init(options?: MotionManagerOptions) {
@@ -48,7 +50,7 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
       this.expressionManager = new Cubism4ExpressionManager(this.settings, options)
     }
 
-    this.queueManager.setEventCallback((caller, eventValue, customData) => {
+    this.queueManager.setEventCallback((_caller, eventValue, _customData) => {
       this.emit('motion:' + eventValue)
     })
   }
@@ -118,5 +120,28 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
 
     this.queueManager.release()
     ;(this as Partial<Mutable<this>>).queueManager = undefined
+  }
+
+  async motionLastFrame(
+    group: string,
+    index: number,
+    {
+      expression = undefined
+    }: {
+      expression?: number | string
+    } = {}
+  ): Promise<boolean> {
+    const motion = await this.getMotionAndApplyExpression(group, index, expression)
+
+    if (!motion) {
+      return false
+    }
+
+    this.playing = true
+
+    motionSkipToLastFrame(this.queueManager, this.parent, motion as CubismMotion)
+
+    this.playing = false
+    return true
   }
 }

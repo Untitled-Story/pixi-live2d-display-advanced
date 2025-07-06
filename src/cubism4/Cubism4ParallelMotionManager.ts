@@ -8,6 +8,7 @@ import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanage
 import type { Mutable } from '@/types/helpers'
 import { MotionPriority } from '@/cubism-common'
 import type { Cubism4InternalModel } from '@/cubism4/Cubism4InternalModel'
+import { motionSkipToLastFrame } from '@/utils/motion'
 
 export class Cubism4ParallelMotionManager extends ParallelMotionManager<
   CubismMotion,
@@ -80,15 +81,9 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
 
     this.queueManager.stopAllMotions()
 
-    const motionQueueEntryHandle = this.queueManager.startMotion(motion, false, performance.now())
-
-    const motionQueueEntry = this.queueManager.getCubismMotionQueueEntry(motionQueueEntryHandle)!
-
-    const duration = motion.getDuration()
-    const currentTime = motionQueueEntry.getStartTime() + duration
-
-    motion.doUpdateParameters(this.parent.coreModel, currentTime, 1.0, motionQueueEntry)
-    motionQueueEntry.setIsFinished(true)
+    if (!motionSkipToLastFrame(this.queueManager, this.parent, motion)) {
+      return false
+    }
     this.playing = false
 
     return true
