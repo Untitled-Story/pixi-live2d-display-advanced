@@ -43,9 +43,6 @@ export class Cubism4InternalModel extends InternalModel {
   declare pose?: CubismPose
   declare physics?: CubismPhysics
 
-  // what's this for?
-  userData?: CubismModelUserData
-
   renderer = new CubismRenderer_WebGL()
 
   idParamAngleX = ParamAngleX
