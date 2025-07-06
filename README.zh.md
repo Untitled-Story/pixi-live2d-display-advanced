@@ -1,24 +1,31 @@
-# pixi-live2d-display
+# pixi-live2d-display-advanced
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/guansss/pixi-live2d-display?style=flat-square)
+![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/guansss/pixi-live2d-display/test.yml?style=flat-square)
 
 为 [PixiJS](https://github.com/pixijs/pixi.js) v7 提供的 Live2D 插件
 
-此项目旨在成为 web 平台上的通用 Live2D 框架。由于 Live2D 的官方框架非常复杂且不可靠，这个项目已将其重写以提供统一且简单的 API，使你可以从较高的层次来控制 Live2D 模型而无需了解其内部的工作原理
+此项目旨在成为 Web 平台上的通用 Live2D 框架。
+由于 Live2D 的官方框架非常复杂且不可靠，这个项目已将其重写以提供统一且简单的 API，
+使你可以从较高的层次来控制 Live2D 模型而无需了解其内部的工作原理
+
+相较于 [pixi-live2d-display-mulmotion](https://www.npmjs.com/package/pixi-live2d-display-mulmotion), 本项目增加了对
+播放动作最末帧的支持。在 Project SEKAI like 项目中大幅地缩短了再次应用动作的时间。
+
+此外，本分支还重构了一些本项目的原始代码，可能提升了部分性能，但大幅提高了代码可读性，利于维护。
 
 #### 特性
 
 - 支持所有版本的 Live2D 模型
 - 支持 PIXI.RenderTexture 和 PIXI.Filter
-- Pixi 风格的变换 API：position, scale, rotation, skew, anchor
+- Pixi.js 风格的变换 API：position, scale, rotation, skew, anchor
 - 自动交互：鼠标跟踪, 点击命中检测
 - 比官方框架更好的动作预约逻辑
 - 从上传的文件或 zip 文件中加载 (实验性功能)
 - 完善的类型定义 - 我们都喜欢类型！
 - 实时口型同步
 - 同时播放多个动作
+- 播放动作最末帧
 
 #### 要求
 
@@ -32,6 +39,8 @@
 - [交互示例](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
 - [渲染纹理与滤镜示例](https://codepen.io/guansss/pen/qBaMNQV/left?editors=1010)
 - [Live2D Viewer Online](https://guansss.github.io/live2d-viewer-web/)
+- [多动作同步播放](#多动作同步播放)
+- [播放动作最末帧](#播放动作最末帧)
 
 #### 文档
 
@@ -48,7 +57,8 @@ Cubism 是 Live2D SDK 的名称，目前有 3 个版本：Cubism 2.1、Cubism 3�
 
 在使用该插件之前，你需要加载 Cubism 运行时，也就是 Cubism Core
 
-Cubism 4 需要加载 `live2dcubismcore.min.js`，可以从 [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
+Cubism 4 需要加载 `live2dcubismcore.min.js`
+，可以从 [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
 里解压出来，或者直接引用[这个链接](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
 （_链接偶尔会挂掉，不要在生产版本中使用！_）
 
@@ -75,38 +85,18 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 #### 通过 npm
 
 ```sh
-npm install pixi-live2d-display-mulmotion
+npm install pixi-live2d-display-advanced
 ```
 
 ```js
-import { Live2DModel } from 'pixi-live2d-display-mulmotion'
+import { Live2DModel } from 'pixi-live2d-display-advanced'
 
 // 如果只需要 Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism2'
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2'
 
 // 如果只需要 Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-mulmotion/cubism4'
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
 ```
-
-#### 通过 CDN (口型同步修改版 / 多动作播放未支持)
-
-```html
-<!-- 加载 Cubism 和 PixiJS -->
-<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pixi.js@7.x/dist/pixi.min.js"></script>
-
-<!-- 如果同时需要 Cubism 2.1 和 Cubism 4 -->
-<script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-7/dist/index.min.js"></script>
-
-<!-- 如果只需要 Cubism 2.1 -->
-<script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-7/dist/cubism2.min.js"></script>
-
-<!-- 如果只需要 Cubism 4 -->
-<script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-7/dist/cubism4.min.js"></script>
-```
-
-通过这种方式加载的话，所有成员都会被导出到 `PIXI.live2d` 命名空间下，比如 `PIXI.live2d.Live2DModel`
 
 ## 基础使用
 
@@ -121,6 +111,44 @@ model.parallelMotion([
 ])
 ```
 
-若需要同步播放表情、声音等请使用`model.motion`/`model.speak`播放其中一个动作，其余动作用`model.parallelMotion`播放。列表中按照index每一项都有独立的优先级控制，和`model.motion`逻辑一致。
+若需要同步播放表情、声音等请使用`model.motion`/`model.speak`播放其中一个动作，其余动作用`model.parallelMotion`播放。
+列表中按照 index 每一项都有独立的优先级控制，和`model.motion`逻辑一致。
+
+## 播放动作最末帧
+
+对于单个动作，可以采用简单的:
+
+```ts
+await model.motionLastFrame('w-cute12-tilthead', 0)
+```
+
+对于多个动作，可以使用:
+
+```ts
+await model.parallelLastFrame([
+  { group: 'w-cute12-tilthead', index: 0 },
+  { group: 'face_worry_01', index: 0 }
+])
+```
+
+或者:
+
+```ts
+model.internalModel.extendParallelMotionManager(2)
+const manager1 = model.internalModel.parallelMotionManager[0]!
+const manager2 = model.internalModel.parallelMotionManager[1]!
+manager1.playMotionLastFrame('w-cute12-tilthead', 0)
+manager2.playMotionLastFrame('face_worry_01', 0)
+```
+
+实质上，这两个方法是等价的。第一种用法只是第二种用法的语法糖。
+
+## v1.0.0 TODOs
+
+- [ ] 完善文档
+- [ ] 更改测试
+- [ ] 自动化构建脚本
+
+拟在 v2.0.0 中，项目升级到 pixi.js v8
 
 # 请参阅此处了解更多文档： [文档](https://guansss.github.io/pixi-live2d-display/)
