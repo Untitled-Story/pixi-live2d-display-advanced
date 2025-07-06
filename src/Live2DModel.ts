@@ -304,7 +304,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     motionList: {
       group: string
       index: number
-      priority?: MotionPriority
     }[]
   ): Promise<boolean[]> {
     this.internalModel.extendParallelMotionManager(motionList.length)
