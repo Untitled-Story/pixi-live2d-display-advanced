@@ -10,7 +10,7 @@ import { CubismMotion } from '@cubism/motion/cubismmotion'
 import { CubismMotionJson } from '@cubism/motion/cubismmotionjson'
 import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanager'
 import type { Mutable } from '@/types/helpers'
-import { motionSkipToLastFrame } from '@/utils/motion'
+import { motionSkipToLastFrame } from '@/cubism4/MotionSkipLastFrameHelper'
 import type { Cubism4InternalModel } from '@/cubism4/Cubism4InternalModel'
 
 export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec.Motion> {
@@ -139,7 +139,11 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
 
     this.playing = true
 
-    motionSkipToLastFrame(this.queueManager, this.parent, motion as CubismMotion)
+    motionSkipToLastFrame(
+      this.queueManager,
+      this.parent as Cubism4InternalModel,
+      motion as CubismMotion
+    )
 
     this.playing = false
     return true

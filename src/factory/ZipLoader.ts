@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// noinspection JSUnusedLocalSymbols
+
 import type { InternalModel, ModelSettings } from '@/cubism-common'
-import type { Live2DFactoryContext } from '@/factory/Live2DFactory'
-import type { Live2DFactory } from '@/factory/Live2DFactory'
+import type { Live2DFactory, Live2DFactoryContext } from '@/factory/Live2DFactory'
 import { Live2DLoader } from '@/factory/Live2DLoader'
 import type { Middleware } from '@/utils/middleware'
 import url from 'url'
 import type { ExtendedFileList } from './FileLoader'
 
-type ZipReader = any
+type ZipReader = never
 
 /**
  * Experimental loader to load resources from a zip file.

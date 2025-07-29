@@ -1,7 +1,7 @@
 import type { MotionManagerOptions } from '@/cubism-common'
 import { ExpressionManager } from '@/cubism-common/ExpressionManager'
 import type { Cubism2ModelSettings } from '@/cubism2/Cubism2ModelSettings'
-import type { Cubism2Spec } from '../types/Cubism2Spec'
+import type { Cubism2Spec } from '@/types/Cubism2Spec'
 import { Live2DExpression } from './Live2DExpression'
 
 export class Cubism2ExpressionManager extends ExpressionManager<Live2DExpression> {

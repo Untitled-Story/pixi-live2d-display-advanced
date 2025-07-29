@@ -4,7 +4,7 @@ import type { Mutable } from '@/types/helpers'
 import './patch-motion'
 import { MotionPriority } from '@/cubism-common'
 import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
-import { motionSkipToLastFrame } from '@/utils/motion'
+import { motionSkipToLastFrame } from '@/cubism2/MotionSkipLastFrameHelper'
 import { logger } from '@/utils'
 
 export class Cubism2ParallelMotionManager extends ParallelMotionManager<
@@ -69,7 +69,7 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
 
     this.playing = true
 
-    if (!motionSkipToLastFrame(this.queueManager, this.parent, motion)) {
+    if (!motionSkipToLastFrame(this.queueManager, this.parent as Cubism2InternalModel, motion)) {
       return false
     }
 

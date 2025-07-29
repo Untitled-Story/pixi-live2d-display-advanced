@@ -6,7 +6,7 @@ import type { Cubism2ModelSettings } from '@/cubism2/Cubism2ModelSettings'
 import type { Cubism2Spec } from '@/types/Cubism2Spec'
 import type { Mutable } from '@/types/helpers'
 import './patch-motion'
-import { motionSkipToLastFrame } from '@/utils/motion'
+import { motionSkipToLastFrame } from '@/cubism2/MotionSkipLastFrameHelper'
 import type { Cubism2InternalModel } from '@/cubism2/Cubism2InternalModel'
 
 export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spec.Motion> {
@@ -108,7 +108,11 @@ export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spe
 
     this.playing = true
 
-    motionSkipToLastFrame(this.queueManager, this.parent, motion as Live2DMotion)
+    motionSkipToLastFrame(
+      this.queueManager,
+      this.parent as Cubism2InternalModel,
+      motion as Live2DMotion
+    )
 
     this.playing = false
     return true

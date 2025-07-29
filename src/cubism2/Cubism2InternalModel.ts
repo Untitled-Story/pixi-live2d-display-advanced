@@ -1,14 +1,13 @@
 import type { InternalModelOptions } from '@/cubism-common'
 import type { CommonHitArea, CommonLayout } from '@/cubism-common/InternalModel'
 import { InternalModel } from '@/cubism-common/InternalModel'
-import { logger } from '@/utils'
+import { clamp, logger } from '@/utils'
 import type { Cubism2ModelSettings } from './Cubism2ModelSettings'
 import { Cubism2MotionManager } from './Cubism2MotionManager'
 import { Cubism2ParallelMotionManager } from './Cubism2ParallelMotionManager'
 import { Live2DEyeBlink } from './Live2DEyeBlink'
 import type { Live2DPhysics } from './Live2DPhysics'
 import type { Live2DPose } from './Live2DPose'
-import { clamp } from '@/utils'
 
 // prettier-ignore
 const tempMatrixArray = new Float32Array([

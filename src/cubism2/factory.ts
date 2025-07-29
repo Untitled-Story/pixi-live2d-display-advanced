@@ -4,12 +4,12 @@ import { Live2DPhysics } from '@/cubism2/Live2DPhysics'
 import { Live2DPose } from '@/cubism2/Live2DPose'
 import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
-import type { Cubism2Spec } from '../types/Cubism2Spec'
+import type { Cubism2Spec } from '@/types/Cubism2Spec'
 
 Live2DFactory.registerRuntime({
   version: 2,
 
-  test(source: any): boolean {
+  test(source: unknown): boolean {
     return source instanceof Cubism2ModelSettings || Cubism2ModelSettings.isValidJSON(source)
   },
 

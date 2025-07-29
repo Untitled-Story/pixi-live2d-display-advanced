@@ -1,5 +1,5 @@
 import { config } from '@/config'
-import type { Cubism2Spec } from '../types/Cubism2Spec'
+import type { Cubism2Spec } from '@/types/Cubism2Spec'
 
 export class Live2DExpression extends AMotion {
   readonly params: NonNullable<Cubism2Spec.ExpressionJSON['params']> = []
@@ -32,7 +32,7 @@ export class Live2DExpression extends AMotion {
   }
 
   /** @override */
-  updateParamExe(model: Live2DModelWebGL, time: number, weight: number, motionQueueEnt: unknown) {
+  updateParamExe(model: Live2DModelWebGL, time: number, weight: number, _motionQueueEnt: unknown) {
     this.params.forEach((param) => {
       // this algorithm seems to be broken for newer Neptunia series models, have no idea
       //
