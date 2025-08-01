@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { ParallelMotionManager } from '@/cubism-common/ParallelMotionManager'
 import type { Cubism2Spec } from '@/types/Cubism2Spec'
 import type { Mutable } from '@/types/helpers'
@@ -25,11 +27,20 @@ export class Cubism2ParallelMotionManager extends ParallelMotionManager<
     return definition.file
   }
 
-  protected _startMotion(motion: Live2DMotion, onFinish?: (motion: Live2DMotion) => void): number {
+  protected _startMotion(
+    motion: Live2DMotion,
+    onFinish?: (motion: Live2DMotion) => void,
+    ignoreParamIds?: string[]
+  ): number {
     motion.onFinishHandler = onFinish
 
-    this.queueManager.stopAllMotions()
+    if (ignoreParamIds && ignoreParamIds.length > 0) {
+      motion.motions = motion.motions.filter((item) => {
+        return !ignoreParamIds.includes(item._$4P)
+      })
+    }
 
+    this.queueManager.stopAllMotions()
     return this.queueManager.startMotion(motion)
   }
 

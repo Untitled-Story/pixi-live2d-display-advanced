@@ -58,18 +58,14 @@ export abstract class ParallelMotionManager<
    * @param group - The motion group.
    * @param index - Index in the motion group.
    * @param priority - The priority to be applied. default: 2 (NORMAL)
-   * ### OPTIONAL: {name: value, ...}
-   * @param sound - The audio url to file or base64 content
-   * @param volume - Volume of the sound (0-1)
-   * @param expression - In case you want to mix up an expression while playing sound (bind with Model.expression())
-   * @param resetExpression - Reset expression before and after playing sound (default: true)
-   * @param crossOrigin - Cross origin setting.
+   * @param ignoreParamIds - The ids to be ignored.
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
   async startMotion(
     group: string,
     index: number,
-    priority: MotionPriority = MotionPriority.NORMAL
+    priority: MotionPriority = MotionPriority.NORMAL,
+    ignoreParamIds: string[] = []
   ): Promise<boolean> {
     if (!this.state.reserve(group, index, priority)) {
       return false
@@ -91,7 +87,7 @@ export abstract class ParallelMotionManager<
 
     this.playing = true
 
-    this._startMotion(motion! as Motion)
+    this._startMotion(motion! as Motion, undefined, ignoreParamIds)
 
     return true
   }
@@ -100,11 +96,6 @@ export abstract class ParallelMotionManager<
    * Starts a random Motion as given priority.
    * @param group - The motion group.
    * @param priority - The priority to be applied. (default: 1 `IDLE`)
-   * ### OPTIONAL: {name: value, ...}
-   * @param sound - The wav url file or base64 content+
-   * @param volume - Volume of the sound (0-1) (default: 1)
-   * @param expression - In case you want to mix up an expression while playing sound (name/index)
-   * @param resetExpression - Reset expression before and after playing sound (default: true)
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
    */
   async startRandomMotion(group: string, priority?: MotionPriority): Promise<boolean> {
@@ -181,7 +172,11 @@ export abstract class ParallelMotionManager<
   /**
    * Starts the Motion.
    */
-  protected abstract _startMotion(motion: Motion, onFinish?: (motion: Motion) => void): number
+  protected abstract _startMotion(
+    motion: Motion,
+    onFinish?: (motion: Motion) => void,
+    ignoreParamIds?: string[]
+  ): number
 
   /**
    * Stops all playing motions.

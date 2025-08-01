@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { config } from '@/config'
 import type { MotionManagerOptions } from '@/cubism-common/MotionManager'
 import { MotionManager } from '@/cubism-common/MotionManager'
@@ -59,8 +61,19 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
     return this.queueManager.isFinished()
   }
 
-  protected _startMotion(motion: CubismMotion, onFinish?: (motion: CubismMotion) => void): number {
+  protected _startMotion(
+    motion: CubismMotion,
+    onFinish?: (motion: CubismMotion) => void,
+    ignoreParamIds?: string[]
+  ): number {
     motion.setFinishedMotionHandler(onFinish as (motion: ACubismMotion) => void)
+
+    if (ignoreParamIds && ignoreParamIds.length > 0) {
+      motion._motionData.curves = motion._motionData.curves.filter((item) => {
+        return !ignoreParamIds.includes(item.id)
+      })
+      motion._motionData.curveCount = motion._motionData.curves.length
+    }
 
     this.queueManager.stopAllMotions()
 

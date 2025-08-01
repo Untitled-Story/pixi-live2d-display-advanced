@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { config } from '@/config'
 import type { MotionManagerOptions } from '@/cubism-common/MotionManager'
 import { MotionManager } from '@/cubism-common/MotionManager'
@@ -70,8 +72,18 @@ export class Cubism2MotionManager extends MotionManager<Live2DMotion, Cubism2Spe
     return definition.sound
   }
 
-  protected _startMotion(motion: Live2DMotion, onFinish?: (motion: Live2DMotion) => void): number {
+  protected _startMotion(
+    motion: Live2DMotion,
+    onFinish?: (motion: Live2DMotion) => void,
+    ignoreParamIds?: string[]
+  ): number {
     motion.onFinishHandler = onFinish
+
+    if (ignoreParamIds && ignoreParamIds.length > 0) {
+      motion.motions = motion.motions.filter((item) => {
+        return !ignoreParamIds.includes(item._$4P)
+      })
+    }
 
     this.queueManager.stopAllMotions()
 

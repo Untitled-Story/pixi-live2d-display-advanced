@@ -385,6 +385,7 @@ export abstract class MotionManager<
    * @param crossOrigin - Cross origin setting.
    * @param onFinish - Callback when playback finishes.
    * @param onError - Callback when playback errors.
+   * @param ignoreParamIds - The ids to be ignored.
    * @return Promise that resolves with true if the motion is successfully started, false otherwise.
    */
   async startMotion(
@@ -398,7 +399,8 @@ export abstract class MotionManager<
       resetExpression = true,
       crossOrigin,
       onFinish,
-      onError
+      onError,
+      ignoreParamIds = []
     }: {
       sound?: string
       volume?: number
@@ -407,6 +409,7 @@ export abstract class MotionManager<
       crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
+      ignoreParamIds?: string[]
     } = {}
   ): Promise<boolean> {
     if (!this.state.reserve(group, index, priority)) {
@@ -513,7 +516,7 @@ export abstract class MotionManager<
 
     this.playing = true
 
-    this._startMotion(motion!)
+    this._startMotion(motion!, undefined, ignoreParamIds)
 
     return true
   }
@@ -708,11 +711,16 @@ export abstract class MotionManager<
    * Starts the Motion.
    * @param motion - The Motion to start.
    * @param onFinish - Optional callback when finished.
+   * @param ignoreParamIds - The ids to be ignored.
    * @returns An ID or token for the motion.
    * @protected
    * @abstract
    */
-  protected abstract _startMotion(motion: Motion, onFinish?: (motion: Motion) => void): number
+  protected abstract _startMotion(
+    motion: Motion,
+    onFinish?: (motion: Motion) => void,
+    ignoreParamIds?: string[]
+  ): number
 
   /**
    * Stops all playing motions.
