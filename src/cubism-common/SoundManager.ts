@@ -1,10 +1,11 @@
 import { logger, remove } from '@/utils'
 import { config } from '@/config'
-import { Sound } from '@pixi/sound'
+import { sound, Sound } from '@pixi/sound'
 import { webaudio } from '@pixi/sound'
 
 const TAG = 'SoundManager'
 export const VOLUME = 0.5
+sound.disableAutoPause = true
 
 /**
  * Manages all the sounds.
@@ -53,6 +54,7 @@ export class SoundManager {
           }
         })
       })
+
       return await task
     } catch (e) {
       logger.warn(TAG, `Error occurred on "${file}"`, e)
