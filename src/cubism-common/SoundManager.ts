@@ -35,25 +35,16 @@ export class SoundManager {
   /**
    * Creates an audio element and adds it to the {@link audios}.
    * @param file - URL of the sound file.
-   * @param onFinish - Callback invoked when the playback has finished.
    * @param onError - Callback invoked when error occurs.
    * @return Created audio element.
    */
-  static async add(
-    file: string,
-    onFinish?: () => void,
-    onError?: (e: Error) => void
-  ): Promise<Sound | null> {
+  static async add(file: string, onError?: (e: Error) => void): Promise<Sound | null> {
     try {
       const task = new Promise<Sound>((resolve, reject) => {
         const audio = Sound.from({
           url: file,
           volume: this._volume,
           preload: true,
-          complete: () => {
-            this.dispose(audio)
-            onFinish?.()
-          },
           loaded: () => {
             if (!(audio.media instanceof webaudio.WebAudioMedia)) {
               reject(new Error(`Error: ${file} is not WebAudioMedia`))
@@ -73,9 +64,15 @@ export class SoundManager {
   /**
    * Plays the sound.
    * @param audio - An audio element.
+   * @param onFinish - Callback invoked when the playback has finished.
    */
-  static play(audio: Sound): void {
-    audio.play()
+  static play(audio: Sound, onFinish?: () => void): void {
+    audio.play({
+      complete: () => {
+        onFinish?.()
+        audio.destroy()
+      }
+    })
   }
 
   static addAnalyzer(audio: Sound, context: AudioContext): AnalyserNode {

@@ -315,26 +315,14 @@ export abstract class MotionManager<
     const file: string | undefined = sound
     if (file) {
       try {
-        // start to load the audio
-        audio = await SoundManager.add(
-          file,
-          (that = this) => {
-            logger.warn(this.tag, 'Audio finished playing')
-            onFinish?.()
-            if (resetExpression && expression && that.expressionManager) {
-              that.expressionManager.resetExpression()
-            }
-            that.currentAudio = undefined
-          },
-          (e, that = this) => {
-            logger.error(this.tag, 'Error during audio playback:', e)
-            onError?.(e)
-            if (resetExpression && expression && that.expressionManager) {
-              that.expressionManager.resetExpression()
-            }
-            that.currentAudio = undefined
+        audio = await SoundManager.add(file, (e, that = this) => {
+          logger.error(this.tag, 'Error during audio playback:', e)
+          onError?.(e)
+          if (resetExpression && expression && that.expressionManager) {
+            that.expressionManager.resetExpression()
           }
-        )
+          that.currentAudio = undefined
+        })
 
         this.initializeAudio(audio!, volume)
       } catch (e) {
@@ -347,7 +335,13 @@ export abstract class MotionManager<
       let playSuccess = true
       try {
         if (config.motionSync) {
-          SoundManager.play(audio)
+          SoundManager.play(audio, () => {
+            onFinish?.()
+            if (resetExpression && expression && this.expressionManager) {
+              this.expressionManager.resetExpression()
+            }
+            this.currentAudio = undefined
+          })
         }
       } catch (e) {
         logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
@@ -449,24 +443,14 @@ export abstract class MotionManager<
 
     if (file) {
       try {
-        audio = await SoundManager.add(
-          file,
-          (that = this) => {
-            onFinish?.()
-            if (resetExpression && expression && that.expressionManager) {
-              that.expressionManager.resetExpression()
-            }
-            that.currentAudio = undefined
-          },
-          (e, that = this) => {
-            logger.error(this.tag, 'Error during audio playback:', e)
-            onError?.(e)
-            if (resetExpression && expression && that.expressionManager) {
-              that.expressionManager.resetExpression()
-            }
-            that.currentAudio = undefined
+        audio = await SoundManager.add(file, (e, that = this) => {
+          logger.error(this.tag, 'Error during audio playback:', e)
+          onError?.(e)
+          if (resetExpression && expression && that.expressionManager) {
+            that.expressionManager.resetExpression()
           }
-        )
+          that.currentAudio = undefined
+        })
 
         this.initializeAudio(audio!, volume)
       } catch (e) {
@@ -479,7 +463,13 @@ export abstract class MotionManager<
     if (audio) {
       if (config.motionSync) {
         try {
-          SoundManager.play(audio)
+          SoundManager.play(audio, (that = this) => {
+            onFinish?.()
+            if (resetExpression && expression && that.expressionManager) {
+              that.expressionManager.resetExpression()
+            }
+            that.currentAudio = undefined
+          })
         } catch (e) {
           logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
         }
