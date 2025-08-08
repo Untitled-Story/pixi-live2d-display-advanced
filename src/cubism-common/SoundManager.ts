@@ -58,7 +58,6 @@ export class SoundManager {
             if (!(audio.media instanceof webaudio.WebAudioMedia)) {
               reject(new Error(`Error: ${file} is not WebAudioMedia`))
             }
-            debugger
             resolve(audio)
           }
         })
