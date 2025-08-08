@@ -1,5 +1,7 @@
 import { logger, remove } from '@/utils'
 import { config } from '@/config'
+import { Sound } from '@pixi/sound'
+import { webaudio } from '@pixi/sound'
 
 const TAG = 'SoundManager'
 export const VOLUME = 0.5
@@ -11,7 +13,7 @@ export class SoundManager {
   /**
    * Audio elements playing or pending to play. Finished audios will be removed automatically.
    */
-  static audios: HTMLAudioElement[] = []
+  static audios: Sound[] = []
   static analysers: AnalyserNode[] = []
   static contexts: AudioContext[] = []
 
@@ -35,70 +37,55 @@ export class SoundManager {
    * @param file - URL of the sound file.
    * @param onFinish - Callback invoked when the playback has finished.
    * @param onError - Callback invoked when error occurs.
-   * @param crossOrigin - Cross origin setting.
    * @return Created audio element.
    */
-  static add(
+  static async add(
     file: string,
     onFinish?: () => void,
-    onError?: (e: Error) => void,
-    crossOrigin?: string
-  ): HTMLAudioElement {
-    const audio = new Audio(file)
-
-    audio.volume = this._volume
-    audio.preload = 'auto'
-    // audio.autoplay = true;
-    audio.crossOrigin = crossOrigin!
-
-    audio.addEventListener('ended', () => {
-      this.dispose(audio)
-      onFinish?.()
-    })
-
-    audio.addEventListener('error', (e: ErrorEvent) => {
-      this.dispose(audio)
-      logger.warn(TAG, `Error occurred on "${file}"`, e.error)
-      onError?.(e.error)
-    })
-
-    this.audios.push(audio)
-
-    return audio
+    onError?: (e: Error) => void
+  ): Promise<Sound | null> {
+    try {
+      const task = new Promise<Sound>((resolve, reject) => {
+        const audio = Sound.from({
+          url: file,
+          volume: this._volume,
+          preload: true,
+          complete: () => {
+            this.dispose(audio)
+            onFinish?.()
+          },
+          loaded: () => {
+            if (!(audio.media instanceof webaudio.WebAudioMedia)) {
+              reject(new Error(`Error: ${file} is not WebAudioMedia`))
+            }
+            debugger
+            resolve(audio)
+          }
+        })
+      })
+      return await task
+    } catch (e) {
+      logger.warn(TAG, `Error occurred on "${file}"`, e)
+      onError?.(e as Error)
+      return null
+    }
   }
 
   /**
    * Plays the sound.
    * @param audio - An audio element.
-   * @return Promise that resolves when the audio is ready to play, rejects when error occurs.
    */
-  static play(audio: HTMLAudioElement): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // see https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-      audio.play()?.catch((e) => {
-        audio.dispatchEvent(new ErrorEvent('error', { error: e }))
-        reject(e)
-      })
-
-      if (audio.readyState === audio.HAVE_ENOUGH_DATA) {
-        resolve()
-      } else {
-        audio.addEventListener('canplaythrough', resolve as () => void)
-      }
-    })
+  static play(audio: Sound): void {
+    audio.play()
   }
 
-  static addContext(audio: HTMLAudioElement): AudioContext {
-    /* Create an AudioContext */
-    const context = new AudioContext()
-
-    this.contexts.push(context)
-    return context
-  }
-
-  static addAnalyzer(audio: HTMLAudioElement, context: AudioContext): AnalyserNode {
+  static addAnalyzer(audio: Sound, context: AudioContext): AnalyserNode {
     /* Create an AnalyserNode */
-    const source = context.createMediaElementSource(audio)
+    const media = audio.media as webaudio.WebAudioMedia
+    const source = context.createBufferSource()
+
+    source.buffer = media.buffer
+
     const analyser = context.createAnalyser()
 
     analyser.fftSize = config.fftSize
@@ -107,6 +94,7 @@ export class SoundManager {
     analyser.smoothingTimeConstant = 0.85
 
     source.connect(analyser)
+    source.start(0)
     analyser.connect(context.destination)
 
     this.analysers.push(analyser)
@@ -119,27 +107,34 @@ export class SoundManager {
    * @return Returns value to feed into lip sync
    */
   static analyze(analyser: AnalyserNode): number {
-    if (analyser != undefined) {
-      const pcmData = new Float32Array(analyser.fftSize)
-      let sumSquares = 0.0
-      analyser.getFloatTimeDomainData(pcmData)
+    if (!analyser) return parseFloat(Math.random().toFixed(1))
 
-      for (const amplitude of pcmData) {
-        sumSquares += amplitude * amplitude
-      }
-      return parseFloat(Math.sqrt((sumSquares / pcmData.length) * 20).toFixed(1))
-    } else {
-      return parseFloat(Math.random().toFixed(1))
+    const buffer = new Float32Array(analyser.fftSize)
+    analyser.getFloatTimeDomainData(buffer)
+
+    let sumSquares = 0
+    for (let i = 0; i < buffer.length; i++) {
+      sumSquares += buffer[i]! ** 2
     }
+    const rms = Math.sqrt(sumSquares / buffer.length)
+
+    const minDecibel = -100
+    const db = 20 * Math.log10(rms || 10 ** (minDecibel / 20))
+
+    const scaledDb = Math.min(
+      Math.max((db - analyser.minDecibels) / (analyser.maxDecibels - analyser.minDecibels), 0),
+      1
+    )
+
+    return parseFloat(scaledDb.toFixed(1))
   }
 
   /**
    * Disposes an audio element and removes it from {@link audios}.
    * @param audio - An audio element.
    */
-  static dispose(audio: HTMLAudioElement): void {
+  static dispose(audio: Sound): void {
     audio.pause()
-    audio.removeAttribute('src')
 
     remove(this.audios, audio)
   }
@@ -150,7 +145,7 @@ export class SoundManager {
   static destroy(): void {
     // dispose() removes given audio from the array, so the loop must be backward
     for (let i = this.contexts.length - 1; i >= 0; i--) {
-      this.contexts[i]!.close()
+      setTimeout(() => this.contexts[i]!.close())
     }
 
     for (let i = this.audios.length - 1; i >= 0; i--) {

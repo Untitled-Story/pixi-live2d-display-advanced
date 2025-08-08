@@ -60,7 +60,6 @@ export default defineConfig(({ command, mode }) => {
         name: 'PIXI.live2d'
       },
       rollupOptions: {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         external: (id, _parentId, _isResolved) => {
           if (id === 'pixi.js') {
             throw new Error('do not import pixi.js, import @pixi/* instead')

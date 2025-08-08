@@ -248,13 +248,12 @@ export class Cubism2InternalModel extends InternalModel {
       let value = this.motionManager.mouthSync()
       let min_ = 0
       const max_ = 1
-      const bias_weight = 1.2
-      const bias_power = 0.7
+      const bias_power = 0.4
       if (value > 0.0) {
         min_ = 0.4
       }
       value = Math.pow(value, bias_power)
-      value = clamp(value * bias_weight, min_, max_)
+      value = clamp(value, min_, max_)
 
       for (let i = 0; i < this.motionManager.lipSyncIds.length; ++i) {
         this.coreModel.setParamFloat(

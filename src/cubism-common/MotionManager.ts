@@ -7,6 +7,7 @@ import { logger } from '@/utils'
 import { utils } from '@pixi/core'
 import type { JSONObject, Mutable } from '@/types/helpers'
 import type { InternalModel } from '@/cubism-common/InternalModel'
+import type { Sound } from '@pixi/sound'
 
 export interface MotionManagerOptions {
   /**
@@ -105,9 +106,9 @@ export abstract class MotionManager<
 
   /**
    * Audio element of the current motion if a sound file is defined with it.
-   * @type {HTMLAudioElement | undefined}
+   * @type {Sound | undefined}
    */
-  currentAudio?: HTMLAudioElement
+  currentAudio?: Sound
 
   /**
    * Analyzer element for the current sound being played.
@@ -249,14 +250,14 @@ export abstract class MotionManager<
 
   /**
    * Initializes audio playback and sets up audio analysis for lipsync.
-   * @param audio - The HTMLAudioElement to initialize.
+   * @param audio - The Sound to initialize.
    * @param volume - The playback volume (0-1).
    */
-  protected initializeAudio(audio: HTMLAudioElement, volume: number) {
+  protected initializeAudio(audio: Sound, volume: number) {
     this.currentAudio = audio!
     SoundManager.volume = volume
 
-    this.currentContext = SoundManager.addContext(this.currentAudio)
+    this.currentContext = audio.context.audioContext
 
     this.currentAnalyzer = SoundManager.addAnalyzer(this.currentAudio, this.currentContext)
   }
@@ -278,14 +279,12 @@ export abstract class MotionManager<
       volume = VOLUME,
       expression,
       resetExpression = true,
-      crossOrigin,
       onFinish,
       onError
     }: {
       volume?: number
       expression?: number | string
       resetExpression?: boolean
-      crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
     } = {}
@@ -294,13 +293,14 @@ export abstract class MotionManager<
       return false
     }
 
-    let audio: HTMLAudioElement | undefined
+    let audio: Sound | null | undefined
 
     if (this.currentAudio) {
-      if (!this.currentAudio.ended) {
+      if (this.currentAudio.isPlaying) {
         return false
       }
     }
+
     let soundURL: string | undefined
     const isBase64Content = sound && sound.startsWith('data:')
 
@@ -316,7 +316,7 @@ export abstract class MotionManager<
     if (file) {
       try {
         // start to load the audio
-        audio = SoundManager.add(
+        audio = await SoundManager.add(
           file,
           (that = this) => {
             logger.warn(this.tag, 'Audio finished playing')
@@ -325,7 +325,7 @@ export abstract class MotionManager<
               that.expressionManager.resetExpression()
             }
             that.currentAudio = undefined
-          }, // reset expression when audio is done
+          },
           (e, that = this) => {
             logger.error(this.tag, 'Error during audio playback:', e)
             onError?.(e)
@@ -333,11 +333,10 @@ export abstract class MotionManager<
               that.expressionManager.resetExpression()
             }
             that.currentAudio = undefined
-          }, // on error
-          crossOrigin
+          }
         )
 
-        this.initializeAudio(audio, volume)
+        this.initializeAudio(audio!, volume)
       } catch (e) {
         logger.warn(this.tag, 'Failed to create audio', soundURL, e)
         return false
@@ -346,18 +345,17 @@ export abstract class MotionManager<
 
     if (audio) {
       let playSuccess = true
-      const readyToPlay = SoundManager.play(audio).catch((e) => {
-        logger.warn(this.tag, 'Failed to play audio', audio!.src, e)
-        playSuccess = false
-      })
-
-      if (config.motionSync) {
-        // wait until the audio is ready
-        await readyToPlay
-
-        if (!playSuccess) {
-          return false
+      try {
+        if (config.motionSync) {
+          SoundManager.play(audio)
         }
+      } catch (e) {
+        logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
+        playSuccess = false
+      }
+
+      if (!playSuccess) {
+        return false
       }
     }
 
@@ -397,7 +395,6 @@ export abstract class MotionManager<
       volume = VOLUME,
       expression = undefined,
       resetExpression = true,
-      crossOrigin,
       onFinish,
       onError,
       ignoreParamIds = []
@@ -406,7 +403,6 @@ export abstract class MotionManager<
       volume?: number
       expression?: number | string
       resetExpression?: boolean
-      crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
       ignoreParamIds?: string[]
@@ -417,7 +413,7 @@ export abstract class MotionManager<
     }
     // Does not start a new motion if audio is still playing
     if (this.currentAudio) {
-      if (!this.currentAudio.ended && priority != MotionPriority.FORCE) {
+      if (this.currentAudio.isPlaying && priority != MotionPriority.FORCE) {
         return false
       }
     }
@@ -433,7 +429,7 @@ export abstract class MotionManager<
       SoundManager.dispose(this.currentAudio)
     }
 
-    let audio: HTMLAudioElement | undefined
+    let audio: Sound | null | undefined
 
     let soundURL: string | undefined
     const isBase64Content = sound && sound.startsWith('data:')
@@ -453,8 +449,7 @@ export abstract class MotionManager<
 
     if (file) {
       try {
-        // start to load the audio
-        audio = SoundManager.add(
+        audio = await SoundManager.add(
           file,
           (that = this) => {
             onFinish?.()
@@ -462,7 +457,7 @@ export abstract class MotionManager<
               that.expressionManager.resetExpression()
             }
             that.currentAudio = undefined
-          }, // reset expression when audio is done
+          },
           (e, that = this) => {
             logger.error(this.tag, 'Error during audio playback:', e)
             onError?.(e)
@@ -470,11 +465,10 @@ export abstract class MotionManager<
               that.expressionManager.resetExpression()
             }
             that.currentAudio = undefined
-          }, // on error
-          crossOrigin
+          }
         )
 
-        this.initializeAudio(audio, volume)
+        this.initializeAudio(audio!, volume)
       } catch (e) {
         logger.warn(this.tag, 'Failed to create audio', soundURL, e)
       }
@@ -483,13 +477,12 @@ export abstract class MotionManager<
     const motion = await this.loadMotion(group, index)
 
     if (audio) {
-      const readyToPlay = SoundManager.play(audio).catch((e) =>
-        logger.warn(this.tag, 'Failed to play audio', audio!.src, e)
-      )
-
       if (config.motionSync) {
-        // wait until the audio is ready
-        await readyToPlay
+        try {
+          SoundManager.play(audio)
+        } catch (e) {
+          logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
+        }
       }
     }
 
@@ -542,7 +535,6 @@ export abstract class MotionManager<
       volume = VOLUME,
       expression,
       resetExpression = true,
-      crossOrigin,
       onFinish,
       onError
     }: {
@@ -574,7 +566,6 @@ export abstract class MotionManager<
           volume: volume,
           expression: expression,
           resetExpression: resetExpression,
-          crossOrigin: crossOrigin,
           onFinish: onFinish,
           onError: onError
         })

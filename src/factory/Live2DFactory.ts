@@ -13,7 +13,7 @@ import {
 import { logger } from '@/utils'
 import type { Middleware } from '@/utils/middleware'
 import { runMiddlewares } from '@/utils/middleware'
-import type { JSONObject } from '../types/helpers'
+import type { JSONObject } from '@/types/helpers'
 import { FileLoader } from './FileLoader'
 import { ZipLoader } from './ZipLoader'
 
@@ -91,6 +91,7 @@ export interface Live2DRuntime {
   /**
    * Creates a core model.
    * @param data - Content of the moc file.
+   * @param options
    * @return Created core model.
    */
   createCoreModel(data: ArrayBuffer, options?: Live2DFactoryOptions): any
@@ -217,7 +218,7 @@ export class Live2DFactory {
     )
 
     await runMiddlewares(Live2DFactory.live2DModelMiddlewares, {
-      live2dModel: live2dModel as Live2DModel<InternalModel>,
+      live2dModel: live2dModel as Live2DModel,
       source,
       options: options || {}
     })

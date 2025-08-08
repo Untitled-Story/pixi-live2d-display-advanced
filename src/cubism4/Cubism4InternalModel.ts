@@ -248,14 +248,13 @@ export class Cubism4InternalModel extends InternalModel {
       let value = this.motionManager.mouthSync()
       let min_ = 0
       const max_ = 1
-      const weight = 1.2
       if (value > 0) {
         min_ = 0.4
       }
-      value = clamp(value * weight, min_, max_)
+      value = clamp(value, min_, max_)
 
       for (let i = 0; i < this.motionManager.lipSyncIds.length; ++i) {
-        model.addParameterValueById(this.motionManager.lipSyncIds[i], value, 0.8)
+        model.addParameterValueById(this.motionManager.lipSyncIds[i], value, 0.4)
       }
     }
 
