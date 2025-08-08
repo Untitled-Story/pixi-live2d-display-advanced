@@ -542,7 +542,6 @@ export abstract class MotionManager<
       volume?: number
       expression?: number | string
       resetExpression?: boolean
-      crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
     } = {}
