@@ -342,7 +342,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       volume?: number
       expression?: number | string
       resetExpression?: boolean
-      crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
     } = {}
