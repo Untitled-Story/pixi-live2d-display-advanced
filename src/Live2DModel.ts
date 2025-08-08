@@ -197,7 +197,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param [options.volume=0.5] - Volume of the sound (0-1).
    * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression()).
    * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished.
-   * @param [options.crossOrigin] - CORS settings for audio resources.
    * @param [options.onFinish] - Callback function when speaking completes.
    * @param [options.onError] - Callback function when an error occurs.
    * @return Promise that resolves with true if the motion is successfully started, with false otherwise.
@@ -211,7 +210,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       volume = VOLUME,
       expression = undefined,
       resetExpression = true,
-      crossOrigin,
       onFinish,
       onError
     }: {
@@ -219,7 +217,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       volume?: number
       expression?: number | string
       resetExpression?: boolean
-      crossOrigin?: string
       onFinish?: () => void
       onError?: (e: Error) => void
     } = {}
@@ -230,7 +227,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
         volume: volume,
         expression: expression,
         resetExpression: resetExpression,
-        crossOrigin: crossOrigin,
         onFinish: onFinish,
         onError: onError
       })
@@ -240,7 +236,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
         volume: volume,
         expression: expression,
         resetExpression: resetExpression,
-        crossOrigin: crossOrigin,
         onFinish: onFinish,
         onError: onError
       })
@@ -331,7 +326,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @param [options.volume] - Volume of the sound (0-1).
    * @param [options.expression] - In case you want to mix up an expression while playing sound (bind with Model.expression()).
    * @param [options.resetExpression=true] - Reset the expression to default after the motion is finished.
-   * @param {string} [options.crossOrigin] - CORS settings for audio resources.
    * @param [options.onFinish] - Callback function when speaking completes.
    * @param [options.onError] - Callback function when an error occurs.
    * @returns Promise that resolves with true if the sound is playing, false if it's not.
@@ -342,7 +336,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       volume = VOLUME,
       expression,
       resetExpression = true,
-      crossOrigin,
       onFinish,
       onError
     }: {
@@ -358,7 +351,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       volume: volume,
       expression: expression,
       resetExpression: resetExpression,
-      crossOrigin: crossOrigin,
       onFinish: onFinish,
       onError: onError
     })

@@ -63,6 +63,8 @@ export default defineConfig([
         }
       ],
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/triple-slash-reference': 'warn',
       'prettier/prettier': 'warn',
       'arrow-body-style': 'off',
       'prefer-arrow-callback': 'off'
