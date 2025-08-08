@@ -68,6 +68,7 @@ export class SoundManager {
    */
   static play(audio: Sound, onFinish?: () => void): void {
     audio.play({
+      singleInstance: true,
       complete: () => {
         onFinish?.()
         audio.destroy()
@@ -91,7 +92,6 @@ export class SoundManager {
 
     source.connect(analyser)
     source.start(0)
-    analyser.connect(context.destination)
 
     this.analysers.push(analyser)
     return analyser
