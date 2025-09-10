@@ -6,7 +6,6 @@ import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { BaseSequencer } from 'vitest/node'
 import packageJson from './package.json'
-import { testRpcPlugin } from './test/rpc/rpc-server'
 
 const cubismSubmodule = path.resolve(__dirname, 'cubism')
 const cubism2Core = path.resolve(__dirname, 'core/live2d.min.js')
@@ -84,8 +83,6 @@ export default defineConfig(({ command, mode }) => {
       // pixi.js imports a polyfill package named "url", which breaks Vitest
       // see https://github.com/vitest-dev/vitest/issues/4535
       isTest && nodePolyfills(),
-
-      isTest && testRpcPlugin(),
       isTest && {
         name: 'load-cubism-core',
         enforce: 'post' as const,

@@ -1,4 +1,4 @@
-import { Transform } from '@pixi/core'
+import { Transform } from 'pixi.js'
 
 /**
  * Useless class. May be useful in the future.
