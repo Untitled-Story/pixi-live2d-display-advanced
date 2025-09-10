@@ -7,13 +7,13 @@ import type {
 import { VOLUME } from '@/cubism-common/SoundManager'
 import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
-import type { Rectangle, Renderer, Texture, Ticker } from '@pixi/core'
-import { Matrix, ObservablePoint, Point } from '@pixi/core'
-import { Container } from '@pixi/display'
+import { Renderer, Texture, Ticker, WebGLRenderer } from 'pixi.js'
+import { Container, Matrix, ObservablePoint, Point } from 'pixi.js'
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
 import type { JSONObject } from './types/helpers'
 import { logger } from './utils'
+import type { GlRenderingContext } from 'pixi.js/lib/rendering/renderers/gl/context/GlRenderingContext'
 
 export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptions {}
 
@@ -123,19 +123,21 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * and `(1, 1)` means the bottom right.
    * @type {ObservablePoint}
    */
-  anchor: ObservablePoint<never> = new ObservablePoint(
-    this.onAnchorChange,
-    this,
+  anchor: ObservablePoint = new ObservablePoint(
+    {
+      _onUpdate: this.onAnchorChange
+    },
     0,
     0
-  ) as ObservablePoint<never> // cast the type because it breaks the casting of Live2DModel
+  )
 
   /**
    * An ID of Gl context that syncs with `renderer.CONTEXT_UID`. Used to check if the GL context has changed.
    * @protected
    * @type {number}
    */
-  protected glContextID: number = -1
+
+  protected gl: GlRenderingContext | null = null
 
   /**
    * Elapsed time in milliseconds since created.
@@ -155,6 +157,12 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    */
   automator: Automator
 
+  currentGlId: number = 0
+
+  private generateUID(): number {
+    return ++this.currentGlId
+  }
+
   /**
    * Creates a new Live2DModel instance.
    * @param options - Options for Live2DModel and Automator.
@@ -163,7 +171,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     super()
 
     this.automator = new Automator(this, options)
-
+    this.onRender = this._onRender.bind(this)
     this.once('modelLoaded', () => this.initializeOnModelLoad(options))
   }
 
@@ -438,18 +446,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    */
   toModelPosition(position: Point, result: Point = position.clone(), skipUpdate?: boolean): Point {
     if (!skipUpdate) {
-      this._recursivePostUpdateTransform()
-
-      if (!this.parent) {
-        ;(this.parent as unknown) = this._tempDisplayObjectParent
-        this.displayObjectUpdateTransform()
-        ;(this.parent as unknown) = null
-      } else {
-        this.displayObjectUpdateTransform()
-      }
+      this.updateLocalTransform()
     }
 
-    this.transform.worldTransform.applyInverse(position, result)
+    this.toLocal(position, this, result, skipUpdate)
     this.internalModel.localTransform.applyInverse(result, result)
 
     return result
@@ -461,14 +461,20 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @return True if the point is inside this model.
    */
   containsPoint(point: Point): boolean {
-    return this.getBounds(true).contains(point.x, point.y)
+    return this.getBounds(true).containsPoint(point.x, point.y)
   }
 
   /** @override
    * Calculates the bounds of the Live2DModel for rendering and interaction purposes.
    */
   protected _calculateBounds(): void {
-    this._bounds.addFrame(this.transform, 0, 0, this.internalModel.width, this.internalModel.height)
+    this.getBounds().addFrame(
+      0,
+      0,
+      this.internalModel.width,
+      this.internalModel.height,
+      this.transform.matrix
+    )
   }
 
   /**
@@ -483,24 +489,21 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     // don't call `this.internalModel.update()` here, because it requires WebGL context
   }
 
-  /** @override
+  /**
    * Renders the Live2DModel to the renderer.
    * @param renderer - The PixiJS Renderer instance.
    */
-  override _render(renderer: Renderer): void {
-    // reset certain systems in renderer to make Live2D's drawing system compatible with Pixi
-    renderer.batch.reset()
-    renderer.geometry.reset()
-    renderer.shader.reset()
-    renderer.state.reset()
+  _onRender = (renderer: Renderer) => {
+    if (!(renderer instanceof WebGLRenderer)) {
+      throw new Error(`Renderer is not supported`)
+    }
 
     let shouldUpdateTexture = false
 
-    // when the WebGL context has changed
-    if (this.glContextID !== renderer.CONTEXT_UID) {
-      this.glContextID = renderer.CONTEXT_UID
+    if (this.gl !== renderer.gl) {
+      this.gl = renderer.gl
 
-      this.internalModel.updateWebGLContext(renderer.gl, this.glContextID)
+      this.internalModel.updateWebGLContext(renderer.gl, this.generateUID())
 
       shouldUpdateTexture = true
     }
@@ -508,31 +511,20 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     for (let i = 0; i < this.textures.length; i++) {
       const texture = this.textures[i]!
 
-      if (!texture.valid) {
-        continue
-      }
-
-      if (shouldUpdateTexture || !texture.baseTexture._glTextures[this.glContextID]) {
+      if (shouldUpdateTexture || !renderer.texture.getGlSource(texture.source).texture) {
         renderer.gl.pixelStorei(
           WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL,
           this.internalModel.textureFlipY
         )
 
-        // let the TextureSystem generate corresponding WebGLTexture, and bind to an arbitrary location
-        renderer.texture.bind(texture.baseTexture, 0)
+        renderer.texture.bind(texture, 0)
       }
 
-      // bind the WebGLTexture into Live2D core.
-      // because the Texture in Pixi can be shared between multiple DisplayObjects,
-      // it's unable to know if the WebGLTexture in this Texture has been destroyed (GCed) and regenerated,
-      // and therefore we always bind the texture at this moment no matter what
-      this.internalModel.bindTexture(i, texture.baseTexture._glTextures[this.glContextID]!.texture)
-
-      // manually update the GC counter so they won't be GCed while using this model
-      texture.baseTexture.touched = renderer.textureGC.count
+      this.internalModel.bindTexture(i, renderer.texture.getGlSource(texture.source).texture)
+      texture.source._touched = renderer.textureGC.count
     }
 
-    const viewport = renderer.framebuffer.viewport as Rectangle
+    const viewport = renderer.renderTarget.viewport
     this.internalModel.viewport = [viewport.x, viewport.y, viewport.width, viewport.height]
 
     // update only if the time has changed, as the model will possibly be updated once but rendered multiple times
@@ -542,15 +534,11 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     }
 
     const internalTransform = tempMatrix
-      .copyFrom(renderer.globalUniforms.uniforms.projectionMatrix)
+      .copyFrom(renderer.globalUniforms.globalUniformData.projectionMatrix)
       .append(this.worldTransform)
 
     this.internalModel.updateTransform(internalTransform)
     this.internalModel.draw(renderer.gl)
-
-    // reset WebGL state and texture bindings
-    renderer.state.reset()
-    renderer.texture.reset()
   }
 
   /**
