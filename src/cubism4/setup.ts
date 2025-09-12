@@ -1,4 +1,4 @@
-import { logger } from '@/utils'
+import { logger, MBToByte } from '@/utils'
 import type { CubismStartupOption } from '@cubism/live2dcubismframework'
 import { CubismFramework, LogLevel } from '@cubism/live2dcubismframework'
 
@@ -56,5 +56,6 @@ export function startUpCubism4(options?: CubismStartupOption) {
   )
 
   CubismFramework.startUp(options)
-  CubismFramework.initialize()
+
+  CubismFramework.initialize(MBToByte(64))
 }
