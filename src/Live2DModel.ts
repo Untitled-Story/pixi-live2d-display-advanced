@@ -545,10 +545,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       .copyFrom(renderer.projection.projectionMatrix)
       .append(this.worldTransform)
 
-    if (this.filters && this.filters.length > 0) {
-      internalTransform.scale(-1, 1)
-    }
-
     this.internalModel.updateTransform(internalTransform)
     this.internalModel.draw(renderer.gl)
 
