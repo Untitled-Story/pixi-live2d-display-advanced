@@ -20,10 +20,11 @@ import type { CubismPose } from '@cubism/effect/cubismpose'
 import { CubismMatrix44 } from '@cubism/math/cubismmatrix44'
 import type { CubismModel } from '@cubism/model/cubismmodel'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
-import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
+import { CubismRenderer_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
 import { Matrix } from '@pixi/core'
 import type { Mutable } from '@/types/helpers'
 import { clamp } from '@/utils'
+import { CubismShader_WebGL } from '@cubism/rendering/cubismshader_webgl'
 
 const tempMatrix = new CubismMatrix44()
 
@@ -160,16 +161,10 @@ export class Cubism4InternalModel extends InternalModel {
   updateWebGLContext(gl: WebGLRenderingContext, glContextID: number): void {
     // reset resources that were bound to previous WebGL context
     this.renderer.firstDraw = true
-    this.renderer._bufferData = {
-      vertex: null,
-      uv: null,
-      index: null
-    }
     this.renderer.startUp(gl)
     // null when the model not using mask
     if (this.renderer._clippingManager) {
       this.renderer._clippingManager._currentFrameNo = glContextID
-      this.renderer._clippingManager._maskTexture = undefined
     }
     CubismShader_WebGL.getInstance()._shaderSets = []
   }
