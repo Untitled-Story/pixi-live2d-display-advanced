@@ -20,11 +20,10 @@ import type { CubismPose } from '@cubism/effect/cubismpose'
 import { CubismMatrix44 } from '@cubism/math/cubismmatrix44'
 import type { CubismModel } from '@cubism/model/cubismmodel'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
-import { CubismRenderer_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
+import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
 import { Matrix } from '@pixi/core'
 import type { Mutable } from '@/types/helpers'
 import { clamp } from '@/utils'
-import { CubismShader_WebGL } from '@cubism/rendering/cubismshader_webgl'
 
 const tempMatrix = new CubismMatrix44()
 
