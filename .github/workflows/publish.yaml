@@ -1,30 +1,30 @@
-name: Publish Package to npmjs
+name: Publish Package to npm.js
 on:
   release:
     types: [published]
   workflow_dispatch:
 
 jobs:
-  publish:
+  build-and-publish:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: https://registry.npmjs.org
+          cache: 'npm'
 
-      - run: npm install
-      - run: npm run setup
-
-      # parse the package version to determine the npm tag to use (most likely "beta").
-      # regex from: https://github.com/Leaflet/Leaflet/blob/35e053c6ff550991a0686865b87a34726e565ce5/.github/workflows/main.yml#L181C29-L181C29
-      - name: Publish to NPM
+      - name: Install dependencies
         run: |
-          TAG=$(jq .version package.json | grep -oP '^"v?\d+\.\d+\.\d+-?\K(\w+)?')
-          echo "Publishing to npm with tag: ${TAG:-latest}"
-          npm publish --tag ${TAG:-latest}
+          npm ci
+          npm run setup
+
+      - name: Publish to npm
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
