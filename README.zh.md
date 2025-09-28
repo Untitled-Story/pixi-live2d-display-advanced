@@ -107,15 +107,15 @@ configureCubism4({
 
 // 加载模型
 const model = await Live2DModel.from('mymodel.model3.json')
-app.stage.addChild(model) // 将模型添加到 Pixi 应用的舞台中
+app.stage.addChild(model)
 ```
 
 ## 并行动作
 
 ```ts
 model.parallelMotion([
-  { group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL }, // 动作组1、索引1、优先级：普通
-  { group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL } // 动作组2、索引2、优先级：普通
+  { group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL },
+  { group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL }
 ])
 ```
 
@@ -126,27 +126,27 @@ model.parallelMotion([
 单个动作：
 
 ```ts
-await model.motionLastFrame('w-cute12-tilthead', 0) // 动作组：w-cute12-tilthead，索引：0
+await model.motionLastFrame('w-cute12-tilthead', 0)
 ```
 
 多个动作：
 
 ```ts
 await model.parallelLastFrame([
-  { group: 'w-cute12-tilthead', index: 0 }, // 动作组：w-cute12-tilthead，索引：0
-  { group: 'face_worry_01', index: 0 } // 动作组：face_worry_01，索引：0
+  { group: 'w-cute12-tilthead', index: 0 },
+  { group: 'face_worry_01', index: 0 }
 ])
 ```
 
 或使用手动并行动作管理器：
 
 ```ts
-model.internalModel.extendParallelMotionManager(2) // 扩展 2 个并行动作管理器
-const manager1 = model.internalModel.parallelMotionManager[0]! // 第一个动作管理器
-const manager2 = model.internalModel.parallelMotionManager[1]! // 第二个动作管理器
+model.internalModel.extendParallelMotionManager(2)
+const manager1 = model.internalModel.parallelMotionManager[0]!
+const manager2 = model.internalModel.parallelMotionManager[1]!
 
-manager1.playMotionLastFrame('w-cute12-tilthead', 0) // 管理器1播放指定动作最后一帧
-manager2.playMotionLastFrame('face_worry_01', 0) // 管理器2播放指定动作最后一帧
+manager1.playMotionLastFrame('w-cute12-tilthead', 0)
+manager2.playMotionLastFrame('face_worry_01', 0)
 ```
 
 以上两种方式效果相同——第一种是第二种的语法糖（简化写法）。
