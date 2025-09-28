@@ -3,104 +3,135 @@
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
-A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v7
+A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v7.
 
-This project aims to be a universal Live2D framework for the web platform.
-Since the official Live2D frameworks are very complex and unreliable, this project rewrites them to provide a unified and simple API,
-allowing you to control Live2D models at a high level without needing to understand the internals.
+This project provides a **unified and simplified API** for controlling Live2D models on the web.
+Compared to the official Live2D SDKs, this library is easier to use, more reliable, and more maintainable.
 
-Compared to [pixi-live2d-display-mulmotion](https://www.npmjs.com/package/pixi-live2d-display-mulmotion), this project adds support for
-playing the last frame of motions. In Project SEKAI-like projects, this greatly shortens the time to reapply animations.
+Compared to [pixi-live2d-display-mulmotion](https://www.npmjs.com/package/pixi-live2d-display-mulmotion), this project
+additionally supports **playing the last frame of motions**, which is especially useful in
+**Project SEKAI-like projects** where animations need to be reapplied frequently, and uses `@pixi/sound` as the audio
+backend, fixing many issues such as model update and display anomalies.
 
-Additionally, this branch refactors some of the original code, which may improve performance in some areas, but most importantly greatly increases code readability and maintainability.
+---
 
-#### Features
+## Features
 
-- Supports all versions of Live2D models
-- Supports PIXI.RenderTexture and PIXI.Filter
-- Pixi.js style transform API: position, scale, rotation, skew, anchor
+- Supports all versions of Live2D models (Cubism 2.1, 3, 4)
+- Compatible with `PIXI.RenderTexture` and `PIXI.Filter`
+- Familiar Pixi.js style transform API: `position`, `scale`, `rotation`, `skew`, `anchor`
 - Automatic interaction: mouse tracking, hit detection on click
-- Better motion reservation logic than the official framework
-- Load from uploaded files or zip files (experimental)
-- Complete type definitions - we all love types!
+- Enhanced motion reservation logic compared to the official framework
+- Load models from uploaded files or zip archives (experimental)
+- Complete TypeScript type definitions
 - Real-time lip sync
 - Play multiple motions simultaneously
 - Play the last frame of motions
 
-#### Requirements
+---
 
-- PixiJS: 7.x
-- Cubism core: 2.1 or 4
-- Browser: WebGL, ES6
+## Requirements
 
-#### Examples
+- **PixiJS**: 7.x
+- **Cubism Core**: 2.1 or 4
+- **Browser**: WebGL, ES6
 
-- [Basic Example](https://codepen.io/guansss/pen/oNzoNoz/left?editors=1010)
+---
+
+## Examples
+
+- [Basic Example](#basic-usage)
 - [Interaction Example](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
 - [Render Texture & Filter Example](https://codepen.io/guansss/pen/qBaMNQV/left?editors=1010)
 - [Live2D Viewer Online](https://guansss.github.io/live2d-viewer-web/)
 - [Parallel Motions Example](#parallel-motions)
 - [Play Motion Last Frame](#play-motion-last-frame)
 
-#### Documentation
+Documentation:
 
-- [Documentation](https://guansss.github.io/pixi-live2d-display) (No Chinese translation available yet)
-- [API Docs](https://guansss.github.io/pixi-live2d-display/api/index.html)
+- [User Guide](https://guansss.github.io/pixi-live2d-display)
+- [API Reference](https://guansss.github.io/pixi-live2d-display/api/index.html)
 
-## Cubism
+---
 
-Cubism is the name of the Live2D SDK. There are currently three versions: Cubism 2.1, Cubism 3, and Cubism 4. Cubism 4 is compatible with Cubism 3 models.
+## Cubism Runtime
 
-This plugin supports Cubism 2.1 and Cubism 4, thus supporting all versions of Live2D models.
+Cubism is the official name of the Live2D SDK.
+Currently, there are three versions: **Cubism 2.1**, **Cubism 3**, and **Cubism 4** (Cubism 4 is backward-compatible
+with Cubism 3).
 
-#### Cubism Core
+This plugin supports **Cubism 2.1 and Cubism 4**, covering all versions of Live2D models.
 
-Before using this plugin, you need to load the Cubism runtime, also known as Cubism Core.
+### Load Cubism Core
 
-For Cubism 4, load `live2dcubismcore.min.js`.
-You can extract it from the [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/),
-or directly reference [this link](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
-(_Note: this link may occasionally be unavailable, do not use it in production!_)
+- **Cubism 4**: `live2dcubismcore.min.js`
 
-For Cubism 2.1, load `live2d.min.js`. [Since September 4, 2019](https://help.live2d.com/en/other/other_20/),
-the official website no longer provides this version of the SDK, but you can find it [here](https://github.com/dylanNew/live2d/tree/master/webgl/Live2D/lib),
-or use this [CDN link](https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js).
+  - Download from the [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
+  - Or use this [link](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js) _(not guaranteed to be
+    always available, do not use in production)_
 
-#### Separate Bundled Files
+- **Cubism 2.1**: `live2d.min.js`
 
-This plugin provides separate bundled files for each Cubism version to reduce the file size when you only need one version.
+  - The official site no longer provides it since [September 4, 2019](https://help.live2d.com/en/other/other_20/)
+  - Available on [GitHub](https://github.com/dylanNew/live2d/tree/master/webgl/Live2D/lib)
+  - Or via [jsDelivr CDN](https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js)
 
-Specifically, there is a `cubism2.js` and `cubism4.js` for the two versions, and a combined `index.js` that supports both.
+### Bundled Files
 
-**Note:** If you want to support both Cubism 2.1 and Cubism 4, please use `index.js` and _do not use_ `cubism2.js` and `cubism4.js` together.
+This plugin provides **separate builds** for different Cubism versions:
 
-To be more clear, here are the ways to use these files:
+- `cubism2.js` + `live2d.min.js` → supports Cubism 2.1 models
+- `cubism4.js` + `live2dcubismcore.min.js` → supports Cubism 3 & 4 models
+- `index.js` + both runtimes → supports all versions
 
-- Use `cubism2.js` + `live2d.min.js` to support Cubism 2.1 models
-- Use `cubism4.js` + `live2dcubismcore.min.js` to support Cubism 3 and Cubism 4 models
-- Use `index.js` + `live2d.min.js` + `live2dcubismcore.min.js` to support all versions of models
+> [!WARNING]
+> Do **not** use `cubism2.js` and `cubism4.js` together. Use `index.js` instead if you need both.
+
+---
 
 ## Installation
 
-#### Via npm
+Via npm:
 
 ```sh
 npm install pixi-live2d-display-advanced
 ```
 
-```js
+Usage:
+
+```ts
 import { Live2DModel } from 'pixi-live2d-display-advanced'
 
-// If you only need Cubism 2.1
+// Only Cubism 2.1
 import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2'
 
-// If you only need Cubism 4
+// Only Cubism 4
 import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
 ```
 
+---
+
 ## Basic Usage
 
-See here: [pixi-live2d-display-lipsync](https://github.com/RaSan147/pixi-live2d-display)
+See example project: [pixi-live2d-display-lipsync](https://github.com/RaSan147/pixi-live2d-display)
+
+When using the Cubism 4 module, you need to call configureCubism4() once before loading models.
+This is required to fix potential issues with model updates.
+
+```ts
+import { Live2DModel, configureCubism4 } from 'pixi-live2d-display-advanced/cubism4'
+
+// Configure Cubism runtime (only needs to be called once)
+configureCubism4({
+  memorySizeMB: 128
+})
+
+// Load a model
+const model = await Live2DModel.from('mymodel.model3.json')
+app.stage.addChild(model)
+```
+
+---
 
 ## Parallel Motions
 
@@ -111,18 +142,21 @@ model.parallelMotion([
 ])
 ```
 
-If you need to play expressions, sounds, etc. in sync, use `model.motion`/`model.speak` to play one of the motions, and use `model.parallelMotion` for the other motions.
-Each item in the list (by index) has independent priority control, following the same logic as `model.motion`.
+For syncing motions with expressions/sounds, use `model.motion` or `model.speak` for one motion, and
+`model.parallelMotion` for others.
+Each item has independent priority control, following the same logic as `model.motion`.
+
+---
 
 ## Play Motion Last Frame
 
-For a single motion, you can simply do:
+Single motion:
 
 ```ts
 await model.motionLastFrame('w-cute12-tilthead', 0)
 ```
 
-For multiple motions, use:
+Multiple motions:
 
 ```ts
 await model.parallelLastFrame([
@@ -131,24 +165,15 @@ await model.parallelLastFrame([
 ])
 ```
 
-Or:
+Or with manual parallel motion managers:
 
 ```ts
 model.internalModel.extendParallelMotionManager(2)
 const manager1 = model.internalModel.parallelMotionManager[0]!
 const manager2 = model.internalModel.parallelMotionManager[1]!
+
 manager1.playMotionLastFrame('w-cute12-tilthead', 0)
 manager2.playMotionLastFrame('face_worry_01', 0)
 ```
 
-Essentially, these two approaches are equivalent. The first usage is just syntactic sugar for the second.
-
-## v1.0.0 TODOs
-
-- [ ] Improve documentation
-- [ ] Update tests
-- [ ] Automate build scripts
-
-In v2.0.0, the project plans to upgrade to pixi.js v8.
-
-# For more documentation, please refer to: [Documentation](https://guansss.github.io/pixi-live2d-display/)
+Both approaches are equivalent — the first is syntactic sugar for the second.

@@ -6,7 +6,6 @@ import { registerCubism4Runtime } from '@/cubism4/factory'
 let startupPromise: Promise<void>
 let startupRetries = 20
 
-let cubismOptions: CubismStartupOption | undefined
 let cubismMemory = 64
 let registered = false
 
@@ -16,7 +15,6 @@ interface CubismConfig {
 }
 
 export function configureCubism4(config: CubismConfig = {}) {
-  cubismOptions = config.options
   cubismMemory = config.memorySizeMB ?? 64
 
   if (registered) {
@@ -65,7 +63,7 @@ export function startUpCubism4(options?: CubismStartupOption, memorySizeMB?: num
       logFunction: console.log,
       loggingLevel: LogLevel.LogLevel_Verbose
     },
-    options ?? cubismOptions
+    options
   )
 
   const memory = memorySizeMB ?? cubismMemory
