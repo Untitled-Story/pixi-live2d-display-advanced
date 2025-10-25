@@ -1,7 +1,5 @@
 name: Publish Package to npm.js
 on:
-  release:
-    types: [published]
   push:
     tags:
       - 'v*.*.*'
