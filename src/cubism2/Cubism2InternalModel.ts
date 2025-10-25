@@ -57,6 +57,9 @@ export class Cubism2InternalModel extends InternalModel {
 
   private hasDrawn = false
 
+  // TODO: It needs to reforged in future
+  autoBlink = true
+
   constructor(
     coreModel: Live2DModelWebGL,
     settings: Cubism2ModelSettings,
@@ -226,6 +229,10 @@ export class Cubism2InternalModel extends InternalModel {
     return super.hitTest(x, y)
   }
 
+  setAutoBlinkEnable(enable: boolean): void {
+    this.autoBlink = enable
+  }
+
   update(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp): void {
     super.update(dt, now)
 
@@ -237,7 +244,7 @@ export class Cubism2InternalModel extends InternalModel {
 
     this.motionManager.expressionManager?.update(model, now)
 
-    if (!motionUpdated) {
+    if (!motionUpdated && this.autoBlink) {
       this.eyeBlink?.update(dt)
     }
 
