@@ -1,4 +1,4 @@
-# pixi-live2d-display-advanced（高级版）
+# pixi-live2d-display-advanced
 
 ![NPM 版本](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism 版本](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
@@ -95,7 +95,7 @@ import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
 
 参考示例项目：[pixi-live2d-display-lipsync](https://github.com/RaSan147/pixi-live2d-display)
 
-使用 Cubism 4 模块时，需在加载模型前调用一次 `configureCubism4()` 方法。此操作是修复模型更新潜在问题的必要步骤。
+Cubism 4 模型会在首次加载时自动完成配置。若需自定义选项（如内存大小）或确保加载前完成配置，可手动调用一次 `configureCubism4()`。
 
 ```ts
 import { Live2DModel, configureCubism4 } from 'pixi-live2d-display-advanced/cubism4'

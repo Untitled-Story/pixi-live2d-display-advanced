@@ -2,6 +2,7 @@
 // noinspection JSUnusedLocalSymbols
 
 import type { InternalModel, ModelSettings } from '@/cubism-common'
+import { autoConfigureCubism4IfNeeded } from '@/factory/cubism4-auto-config'
 import type { Live2DFactory, Live2DFactoryContext } from '@/factory/Live2DFactory'
 import { Live2DLoader } from '@/factory/Live2DLoader'
 import type { Middleware } from '@/utils/middleware'
@@ -144,6 +145,8 @@ export class ZipLoader {
     const settingsJSON = JSON.parse(settingsText)
 
     settingsJSON.url = settingsFilePath
+
+    await autoConfigureCubism4IfNeeded(settingsJSON)
 
     const runtime = ZipLoader.live2dFactory.findRuntime(settingsJSON)
 
