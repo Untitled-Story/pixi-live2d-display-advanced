@@ -1,6 +1,7 @@
 import { ModelSettings } from '@/cubism-common'
 import type { Live2DFactoryContext } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
+import { autoConfigureCubism4IfNeeded } from '@/factory/cubism4-auto-config'
 import { Live2DLoader } from '@/factory/Live2DLoader'
 import { createTexture } from '@/factory/texture'
 import { logger } from '@/utils'
@@ -35,10 +36,14 @@ export const urlToJSON: Middleware<Live2DFactoryContext> = async (context, next)
  */
 export const jsonToSettings: Middleware<Live2DFactoryContext> = async (context, next) => {
   if (context.source instanceof ModelSettings) {
+    await autoConfigureCubism4IfNeeded(context.source)
+
     context.settings = context.source
 
     return next()
   } else if (typeof context.source === 'object') {
+    await autoConfigureCubism4IfNeeded(context.source)
+
     const runtime = Live2DFactory.findRuntime(context.source)
 
     if (runtime) {

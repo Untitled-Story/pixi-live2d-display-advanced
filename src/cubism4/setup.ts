@@ -15,7 +15,9 @@ interface CubismConfig {
 }
 
 export function configureCubism4(config: CubismConfig = {}) {
-  cubismMemory = config.memorySizeMB ?? 64
+  if (config.memorySizeMB != null) {
+    cubismMemory = config.memorySizeMB
+  }
 
   if (registered) {
     return
@@ -26,7 +28,15 @@ export function configureCubism4(config: CubismConfig = {}) {
   registered = true
 }
 
+export function ensureCubism4Configured() {
+  if (!registered) {
+    configureCubism4()
+  }
+}
+
 export function cubism4Ready(): Promise<void> {
+  ensureCubism4Configured()
+
   if (CubismFramework.isStarted()) {
     return Promise.resolve()
   }
@@ -58,6 +68,8 @@ export function cubism4Ready(): Promise<void> {
 }
 
 export function startUpCubism4(options?: CubismStartupOption, memorySizeMB?: number) {
+  ensureCubism4Configured()
+
   options = Object.assign(
     {
       logFunction: console.log,

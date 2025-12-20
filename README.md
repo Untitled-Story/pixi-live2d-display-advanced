@@ -115,8 +115,8 @@ import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
 
 See example project: [pixi-live2d-display-lipsync](https://github.com/RaSan147/pixi-live2d-display)
 
-When using the Cubism 4 module, you need to call configureCubism4() once before loading models.
-This is required to fix potential issues with model updates.
+Cubism 4 models are auto-configured when first encountered. Call `configureCubism4()` yourself if
+you want to customize options (e.g., memory size) or ensure setup happens before any loading.
 
 ```ts
 import { Live2DModel, configureCubism4 } from 'pixi-live2d-display-advanced/cubism4'
