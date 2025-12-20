@@ -1,4 +1,8 @@
 import { ModelSettings } from '@/cubism-common'
+import type { JSONObject } from '@/types/helpers'
+import { logger } from '@/utils'
+
+const TAG = 'Cubism4AutoConfig'
 
 function isCubism4JSON(json: any): boolean {
   if (!json || typeof json !== 'object') {
@@ -15,14 +19,25 @@ function isCubism4JSON(json: any): boolean {
   )
 }
 
-export async function autoConfigureCubism4IfNeeded(source: any): Promise<void> {
-  const json = source instanceof ModelSettings ? (source as any).json : source
+/**
+ * Autoconfigures the Cubism4 runtime when a Cubism4 settings JSON is detected.
+ * Accepts either raw settings JSON or a ModelSettings instance.
+ */
+export async function autoConfigureCubism4IfNeeded(
+  source: ModelSettings | JSONObject
+): Promise<void> {
+  const json = source instanceof ModelSettings ? source.json : source
 
   if (!isCubism4JSON(json)) {
     return
   }
 
-  const { ensureCubism4Configured } = await import('@/cubism4/setup')
+  try {
+    const { ensureCubism4Configured } = await import('@/cubism4/setup')
 
-  ensureCubism4Configured()
+    ensureCubism4Configured()
+  } catch (err) {
+    logger.warn(TAG, 'Failed to auto-configure Cubism4 runtime.', err)
+    throw err
+  }
 }
