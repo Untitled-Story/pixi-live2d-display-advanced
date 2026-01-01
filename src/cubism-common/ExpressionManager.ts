@@ -1,7 +1,7 @@
 import type { ModelSettings } from '@/cubism-common/ModelSettings'
 import type { MotionManagerOptions } from '@/cubism-common/MotionManager'
 import { logger } from '@/utils'
-import { utils } from '@pixi/core'
+import { EventEmitter } from 'pixi.js'
 import type { ExpressionManagerEvents } from '../types/events'
 import type { JSONObject, Mutable } from '../types/helpers'
 
@@ -12,7 +12,7 @@ import type { JSONObject, Mutable } from '../types/helpers'
 export abstract class ExpressionManager<
   Expression = any,
   ExpressionSpec = any
-> extends utils.EventEmitter<keyof ExpressionManagerEvents> {
+> extends EventEmitter<keyof ExpressionManagerEvents> {
   /**
    * Tag for logging.
    */

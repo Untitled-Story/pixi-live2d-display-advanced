@@ -4,7 +4,7 @@ import type { MotionManager } from '@/cubism-common/MotionManager'
 import type { ModelSettings } from '@/cubism-common/ModelSettings'
 import { MotionPriority, MotionState } from '@/cubism-common/MotionState'
 import { logger } from '@/utils'
-import { utils } from '@pixi/core'
+import { EventEmitter } from 'pixi.js'
 import type { InternalModel } from '@/cubism-common/InternalModel'
 
 /**
@@ -14,7 +14,7 @@ import type { InternalModel } from '@/cubism-common/InternalModel'
 export abstract class ParallelMotionManager<
   Motion = never,
   MotionSpec = never
-> extends utils.EventEmitter {
+> extends EventEmitter {
   /**
    * Tag for logging.
    */

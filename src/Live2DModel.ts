@@ -7,13 +7,21 @@ import type {
 import { VOLUME } from '@/cubism-common/SoundManager'
 import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
-import { Renderer, Texture, Ticker, WebGLRenderer } from 'pixi.js'
-import { Container, Matrix, ObservablePoint, Point } from 'pixi.js'
+import {
+  Container,
+  Matrix,
+  ObservablePoint,
+  Point,
+  Renderer,
+  Texture,
+  Ticker,
+  WebGLRenderer
+} from 'pixi.js'
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
 import type { JSONObject } from './types/helpers'
 import { logger } from './utils'
-import type { GlRenderingContext } from 'pixi.js/lib/rendering/renderers/gl/context/GlRenderingContext'
+import type { GlRenderingContext } from 'pixi.js'
 
 export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptions {}
 
@@ -123,13 +131,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * and `(1, 1)` means the bottom right.
    * @type {ObservablePoint}
    */
-  anchor: ObservablePoint = new ObservablePoint(
-    {
-      _onUpdate: this.onAnchorChange
-    },
-    0,
-    0
-  )
+  anchor!: ObservablePoint
 
   /**
    * An ID of Gl context that syncs with `renderer.CONTEXT_UID`. Used to check if the GL context has changed.
@@ -170,6 +172,14 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   constructor(options?: Live2DModelOptions) {
     super()
 
+    this.anchor = new ObservablePoint(
+      {
+        _onUpdate: () => this.onAnchorChange()
+      },
+      0,
+      0
+    )
+
     this.automator = new Automator(this, options)
     this.onRender = this._onRender.bind(this)
     this.once('modelLoaded', () => this.initializeOnModelLoad(options))
@@ -182,6 +192,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    */
   protected initializeOnModelLoad(_options?: Live2DModelOptions) {
     this.tag = `Live2DModel(${this.internalModel.settings.name})`
+
+    // apply anchor to pivot now that the internal model dimensions are available
+    this.onAnchorChange()
   }
 
   /**
@@ -189,6 +202,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @protected
    */
   protected onAnchorChange(): void {
+    if (!this.internalModel || !this.pivot) {
+      return
+    }
+
     this.pivot.set(
       this.anchor.x * this.internalModel.width,
       this.anchor.y * this.internalModel.height
@@ -449,7 +466,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       this.updateLocalTransform()
     }
 
-    this.toLocal(position, this, result, skipUpdate)
+    this.toLocal(position, undefined, result, skipUpdate)
     this.internalModel.localTransform.applyInverse(result, result)
 
     return result

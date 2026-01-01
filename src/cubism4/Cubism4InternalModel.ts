@@ -21,7 +21,7 @@ import { CubismMatrix44 } from '@cubism/math/cubismmatrix44'
 import type { CubismModel } from '@cubism/model/cubismmodel'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
 import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
-import { Matrix } from '@pixi/core'
+import { Matrix } from 'pixi.js'
 import type { Mutable } from '@/types/helpers'
 import { clamp } from '@/utils'
 

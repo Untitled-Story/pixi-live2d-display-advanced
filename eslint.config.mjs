@@ -71,9 +71,14 @@ export default defineConfig([
     }
   },
   {
-    files: ['**/*.js', '**/*.cjs'],
+    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     extends: compat.extends('plugin:@typescript-eslint/disable-type-checked'),
-
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: null
+      }
+    },
     rules: {
       '@typescript-eslint/no-var-requires': 'off'
     }

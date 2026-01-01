@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { inputPriorities, currentStates, results } = require('../test/motion-STT').STT
 const Handlebars = require('handlebars')
 const fs = require('fs')

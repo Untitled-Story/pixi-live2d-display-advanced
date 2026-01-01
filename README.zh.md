@@ -3,7 +3,7 @@
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
-为 [PixiJS](https://github.com/pixijs/pixi.js) v7 提供的 Live2D 插件
+为 [PixiJS](https://github.com/pixijs/pixi.js) v8 提供的 Live2D 插件
 
 此项目旨在成为 Web 平台上的通用 Live2D 框架。
 由于 Live2D 的官方框架非常复杂且不可靠，这个项目已将其重写以提供统一且简单的 API，
@@ -29,7 +29,7 @@
 
 #### 要求
 
-- PixiJS：7.x
+- PixiJS：8.x
 - Cubism core: 2.1 or 4
 - 浏览器：WebGL， ES6
 
@@ -149,6 +149,6 @@ manager2.playMotionLastFrame('face_worry_01', 0)
 - [ ] 更改测试
 - [ ] 自动化构建脚本
 
-拟在 v2.0.0 中，项目升级到 pixi.js v8
+项目已默认升级到 pixi.js v8
 
 # 请参阅此处了解更多文档： [文档](https://guansss.github.io/pixi-live2d-display/)

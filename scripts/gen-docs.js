@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const TypeDoc = require('typedoc')
 const { execSync } = require('child_process')
 

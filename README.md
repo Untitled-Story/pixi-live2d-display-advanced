@@ -3,7 +3,7 @@
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
-A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v7
+A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v8
 
 This project aims to be a universal Live2D framework for the web platform.
 Since the official Live2D frameworks are very complex and unreliable, this project rewrites them to provide a unified and simple API,
@@ -29,7 +29,7 @@ Additionally, this branch refactors some of the original code, which may improve
 
 #### Requirements
 
-- PixiJS: 7.x
+- PixiJS: 8.x
 - Cubism core: 2.1 or 4
 - Browser: WebGL, ES6
 
@@ -149,6 +149,6 @@ Essentially, these two approaches are equivalent. The first usage is just syntac
 - [ ] Update tests
 - [ ] Automate build scripts
 
-In v2.0.0, the project plans to upgrade to pixi.js v8.
+The project now targets pixi.js v8 by default.
 
 # For more documentation, please refer to: [Documentation](https://guansss.github.io/pixi-live2d-display/)
