@@ -30,8 +30,7 @@ export default defineConfig([
   {
     extends: compat.extends(
       'eslint:recommended',
-      'plugin:@typescript-eslint/recommended',
-      'plugin:prettier/recommended'
+      'plugin:@typescript-eslint/recommended-type-checked'
     ),
 
     plugins: {
@@ -51,11 +50,12 @@ export default defineConfig([
       sourceType: 'commonjs',
 
       parserOptions: {
-        project: true
+        project: path.resolve(_dirname, 'eslint-tsconfig.json')
       }
     },
 
     rules: {
+      'prettier/prettier': 'warn',
       '@typescript-eslint/consistent-type-imports': [
         'warn',
         {
@@ -65,7 +65,6 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/triple-slash-reference': 'warn',
-      'prettier/prettier': 'warn',
       'arrow-body-style': 'off',
       'prefer-arrow-callback': 'off'
     }

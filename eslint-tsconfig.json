@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src", "scripts", "playground", "vite.config.ts", "eslint.config.mjs", "cubism/src"]
+}
