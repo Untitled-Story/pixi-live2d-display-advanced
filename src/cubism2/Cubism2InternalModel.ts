@@ -245,13 +245,11 @@ export class Cubism2InternalModel extends InternalModel {
     this.updateNaturalMovements(dt, now)
 
     if (this.lipSync && this.motionManager.currentAudio) {
-      let value = this.motionManager.mouthSync()
-      let min_ = 0
+      const lipSyncGain = 1.3
+      let value = this.motionManager.mouthSync() * lipSyncGain
       const max_ = 1
-      const bias_power = 0.4
-      if (value > 0.0) {
-        min_ = 0.4
-      }
+      const bias_power = 1.15
+      const min_ = value > 0 ? 0.1 : 0
       value = Math.pow(value, bias_power)
       value = clamp(value, min_, max_)
 
