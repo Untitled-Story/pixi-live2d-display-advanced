@@ -42,6 +42,12 @@ export interface Live2DFactoryOptions extends Live2DModelOptions {
    * @default undefined
    */
   onError?(e: Error): void
+
+  /**
+   * Whether to validate motion3.json consistency when loading motions.
+   * @default false
+   */
+  checkMotionConsistency?: boolean
 }
 
 /**
@@ -338,11 +344,12 @@ export class Live2DFactory {
       }
 
       const path = expressionManager.getExpressionFile(definition)
+      const responseType = expressionManager.expressionDataType ?? 'json'
 
       tasks[index] ??= Live2DLoader.load({
         url: path,
         settings: expressionManager.settings,
-        type: 'json',
+        type: responseType,
         target: expressionManager
       })
         .then((data) => {

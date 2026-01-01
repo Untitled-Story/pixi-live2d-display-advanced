@@ -28,9 +28,11 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
   }
 
   protected init() {
-    this.queueManager.setEventCallback((_caller, eventValue, _customData) => {
-      this.emit('motion:' + eventValue)
-    })
+    this.queueManager.setEventCallback(
+      (_caller: unknown, eventValue: string | number | undefined, _customData: unknown) => {
+        this.emit('motion:' + String(eventValue))
+      }
+    )
   }
 
   isFinished(): boolean {
@@ -45,14 +47,14 @@ export class Cubism4ParallelMotionManager extends ParallelMotionManager<
     motion.setFinishedMotionHandler(onFinish as (motion: ACubismMotion) => void)
 
     if (ignoreParamIds && ignoreParamIds.length > 0) {
-      motion._motionData.curves = motion._motionData.curves.filter((item) => {
-        return !ignoreParamIds.includes(item.id)
+      motion._motionData.curves = motion._motionData.curves.filter((item: { id?: string }) => {
+        return item.id ? !ignoreParamIds.includes(item.id) : true
       })
       motion._motionData.curveCount = motion._motionData.curves.length
     }
 
     this.queueManager.stopAllMotions()
-    return this.queueManager.startMotion(motion, false, performance.now())
+    return this.queueManager.startMotion(motion, false)
   }
 
   protected _stopAllMotions(): void {

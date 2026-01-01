@@ -14,6 +14,12 @@ export abstract class ExpressionManager<
   ExpressionSpec = any
 > extends EventEmitter<keyof ExpressionManagerEvents> {
   /**
+   * Indicates the content type used when loading expressions.
+   * @default "json"
+   */
+  readonly expressionDataType: XMLHttpRequestResponseType = 'json'
+
+  /**
    * Tag for logging.
    */
   tag: string
@@ -66,10 +72,17 @@ export abstract class ExpressionManager<
    * Should be called in the constructor of derived class.
    */
   protected init() {
-    this.defaultExpression = this.createExpression({}, undefined)
+    this.defaultExpression = this.createDefaultExpression()
     this.currentExpression = this.defaultExpression
 
     this.stopAllExpressions()
+  }
+
+  /**
+   * Creates the default expression instance used for resets.
+   */
+  protected createDefaultExpression(): Expression {
+    return this.createExpression({}, undefined)
   }
 
   /**

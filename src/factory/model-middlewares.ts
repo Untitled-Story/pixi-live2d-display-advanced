@@ -88,7 +88,7 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
           Live2DLoader.load({
             settings,
             url: settings.pose,
-            type: 'json',
+            type: 'arraybuffer',
             target: internalModel
           })
             .then((data: ArrayBuffer) => {
@@ -107,7 +107,7 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
           Live2DLoader.load({
             settings,
             url: settings.physics,
-            type: 'json',
+            type: 'arraybuffer',
             target: internalModel
           })
             .then((data: ArrayBuffer) => {

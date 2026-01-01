@@ -20,7 +20,7 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
 
   readonly groups = { idle: 'Idle' } as const
 
-  readonly motionDataType = 'json'
+  readonly motionDataType = 'arraybuffer'
 
   readonly queueManager = new CubismMotionQueueManager()
 
@@ -52,9 +52,11 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
       this.expressionManager = new Cubism4ExpressionManager(this.settings, options)
     }
 
-    this.queueManager.setEventCallback((_caller, eventValue, _customData) => {
-      this.emit('motion:' + eventValue)
-    })
+    this.queueManager.setEventCallback(
+      (_caller: unknown, eventValue: string | number | undefined, _customData: unknown) => {
+        this.emit('motion:' + String(eventValue))
+      }
+    )
   }
 
   isFinished(): boolean {
@@ -69,24 +71,31 @@ export class Cubism4MotionManager extends MotionManager<CubismMotion, CubismSpec
     motion.setFinishedMotionHandler(onFinish as (motion: ACubismMotion) => void)
 
     if (ignoreParamIds && ignoreParamIds.length > 0) {
-      motion._motionData.curves = motion._motionData.curves.filter((item) => {
-        return !ignoreParamIds.includes(item.id)
+      motion._motionData.curves = motion._motionData.curves.filter((item: { id?: string }) => {
+        return item.id ? !ignoreParamIds.includes(item.id) : true
       })
       motion._motionData.curveCount = motion._motionData.curves.length
     }
 
     this.queueManager.stopAllMotions()
 
-    return this.queueManager.startMotion(motion, false, performance.now())
+    return this.queueManager.startMotion(motion, false)
   }
 
   protected _stopAllMotions(): void {
     this.queueManager.stopAllMotions()
   }
 
-  createMotion(data: object, group: string, definition: CubismSpec.Motion): CubismMotion {
-    const motion = CubismMotion.create(data as unknown as CubismSpec.MotionJSON)
-    const json = new CubismMotionJson(data as unknown as CubismSpec.MotionJSON)
+  createMotion(data: ArrayBuffer, group: string, definition: CubismSpec.Motion): CubismMotion {
+    const shouldCheckMotionConsistency = !!this.parent.options.checkMotionConsistency
+    const motion = CubismMotion.create(
+      data,
+      data.byteLength,
+      undefined,
+      undefined,
+      shouldCheckMotionConsistency
+    )
+    const json = new CubismMotionJson(data, data.byteLength)
 
     const defaultFadingDuration =
       (group === this.groups.idle ? config.idleMotionFadingDuration : config.motionFadingDuration) /

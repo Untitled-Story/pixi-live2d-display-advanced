@@ -1,4 +1,5 @@
-import type { FederatedPointerEvent, Ticker } from 'pixi.js'
+import type { FederatedPointerEvent } from 'pixi.js'
+import { Ticker } from 'pixi.js'
 import type { Live2DModel } from './Live2DModel'
 import { logger } from './utils'
 
@@ -56,6 +57,7 @@ export class Automator {
 
     if (this._autoUpdate) {
       this._ticker?.add(onTickerUpdate, this)
+      this._ticker?.start()
     }
   }
 
@@ -123,8 +125,10 @@ export class Automator {
     if (autoFocus !== this.autoFocus) {
       if (autoFocus) {
         this.model.on('globalpointermove', onPointerMove, this)
+        this.model.on('pointermove', onPointerMove, this)
       } else {
         this.model.off('globalpointermove', onPointerMove, this)
+        this.model.off('pointermove', onPointerMove, this)
       }
 
       this._autoFocus = autoFocus
@@ -153,13 +157,8 @@ export class Automator {
       ticker
     }: AutomatorOptions = {}
   ) {
-    if (!ticker) {
-      if (Automator.defaultTicker) {
-        ticker = Automator.defaultTicker
-      } else if (typeof PIXI !== 'undefined') {
-        ticker = PIXI.Ticker.shared
-      }
-    }
+    ticker ??=
+      Automator.defaultTicker ?? (typeof PIXI !== 'undefined' ? PIXI.Ticker.shared : Ticker.shared)
 
     if (autoInteract !== undefined) {
       autoHitTest = autoInteract

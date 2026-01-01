@@ -21,6 +21,12 @@ export interface MotionManagerOptions {
    * @default "idle" in Cubism 2 and "Idle" in Cubism 4.
    */
   idleMotionGroup?: string
+
+  /**
+   * Whether to validate motion3.json consistency when creating motions.
+   * @default false
+   */
+  checkMotionConsistency?: boolean
 }
 
 /**

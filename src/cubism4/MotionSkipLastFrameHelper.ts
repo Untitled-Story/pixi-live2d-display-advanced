@@ -7,9 +7,11 @@ export function motionSkipToLastFrame(
   internalModel: Cubism4InternalModel,
   motion: CubismMotion
 ) {
-  const motionQueueEntryHandle = queueManager.startMotion(motion, false, performance.now())
+  const motionQueueEntryHandle = queueManager.startMotion(motion, false)
 
   const motionQueueEntry = queueManager.getCubismMotionQueueEntry(motionQueueEntryHandle)!
+  motionQueueEntry.setStartTime(0)
+  motionQueueEntry.setFadeInStartTime(0)
 
   const duration = motion.getDuration()
   const currentTime = motionQueueEntry.getStartTime() + duration

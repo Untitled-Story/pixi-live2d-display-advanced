@@ -10,6 +10,7 @@ export class Cubism4ExpressionManager extends ExpressionManager<
   CubismExpressionMotion,
   CubismSpec.Expression
 > {
+  readonly expressionDataType = 'arraybuffer' as const
   readonly queueManager = new CubismMotionQueueManager()
 
   readonly definitions: CubismSpec.Expression[]
@@ -34,12 +35,12 @@ export class Cubism4ExpressionManager extends ExpressionManager<
     return definition.File
   }
 
-  createExpression(data: object, definition: CubismSpec.Expression | undefined) {
-    return CubismExpressionMotion.create(data as unknown as CubismSpec.ExpressionJSON)
+  createExpression(data: ArrayBuffer, definition: CubismSpec.Expression | undefined) {
+    return CubismExpressionMotion.create(data, data.byteLength)
   }
 
   protected _setExpression(motion: CubismExpressionMotion): number {
-    return this.queueManager.startMotion(motion, false, performance.now())
+    return this.queueManager.startMotion(motion, false)
   }
 
   protected stopAllExpressions(): void {
@@ -48,5 +49,13 @@ export class Cubism4ExpressionManager extends ExpressionManager<
 
   protected updateParameters(model: CubismModel, now: DOMHighResTimeStamp): boolean {
     return this.queueManager.doUpdateMotion(model, now)
+  }
+
+  protected createDefaultExpression(): CubismExpressionMotion {
+    const fallbackExpression = new TextEncoder().encode(
+      JSON.stringify({ FadeInTime: 0, FadeOutTime: 0, Parameters: [] })
+    ).buffer
+
+    return CubismExpressionMotion.create(fallbackExpression, fallbackExpression.byteLength)
   }
 }

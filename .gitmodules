@@ -1,3 +1,4 @@
 [submodule "cubism"]
 	path = cubism
 	url = https://github.com/Untitled-Story/CubismWebFramework.git
+	branch = dev

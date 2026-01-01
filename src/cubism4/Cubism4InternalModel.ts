@@ -4,23 +4,20 @@ import { InternalModel } from '@/cubism-common/InternalModel'
 import type { Cubism4ModelSettings } from '@/cubism4/Cubism4ModelSettings'
 import { Cubism4MotionManager } from '@/cubism4/Cubism4MotionManager'
 import { Cubism4ParallelMotionManager } from '@/cubism4/Cubism4ParallelMotionManager'
-import {
-  ParamAngleX,
-  ParamAngleY,
-  ParamAngleZ,
-  ParamBodyAngleX,
-  ParamBreath,
-  ParamEyeBallX,
-  ParamEyeBallY,
-  ParamMouthForm
-} from '@cubism/cubismdefaultparameterid'
+import { CubismDefaultParameterId } from '@cubism/cubismdefaultparameterid'
 import { BreathParameterData, CubismBreath } from '@cubism/effect/cubismbreath'
 import { CubismEyeBlink } from '@cubism/effect/cubismeyeblink'
 import type { CubismPose } from '@cubism/effect/cubismpose'
+import { CubismFramework } from '@cubism/live2dcubismframework'
 import { CubismMatrix44 } from '@cubism/math/cubismmatrix44'
 import type { CubismModel } from '@cubism/model/cubismmodel'
 import type { CubismPhysics } from '@cubism/physics/cubismphysics'
-import { CubismRenderer_WebGL, CubismShader_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
+import { CubismRenderer_WebGL } from '@cubism/rendering/cubismrenderer_webgl'
+import { CubismShaderManager_WebGL } from '@cubism/rendering/cubismshader_webgl'
+import { csmVector } from '@cubism/type/csmvector'
+import type { CubismIdManager } from '@cubism/id/cubismidmanager'
+import type { CubismIdHandle } from '@cubism/id/cubismid'
+import type { ICubismModelSetting } from '@cubism/icubismmodelsetting'
 import { Matrix } from 'pixi.js'
 import type { Mutable } from '@/types/helpers'
 import { clamp } from '@/utils'
@@ -45,14 +42,16 @@ export class Cubism4InternalModel extends InternalModel {
 
   renderer = new CubismRenderer_WebGL()
 
-  idParamAngleX = ParamAngleX
-  idParamAngleY = ParamAngleY
-  idParamAngleZ = ParamAngleZ
-  idParamEyeBallX = ParamEyeBallX
-  idParamEyeBallY = ParamEyeBallY
-  idParamBodyAngleX = ParamBodyAngleX
-  idParamBreath = ParamBreath
-  idParamMouthForm = ParamMouthForm
+  private readonly idManager: CubismIdManager
+
+  idParamAngleX: CubismIdHandle
+  idParamAngleY: CubismIdHandle
+  idParamAngleZ: CubismIdHandle
+  idParamEyeBallX: CubismIdHandle
+  idParamEyeBallY: CubismIdHandle
+  idParamBodyAngleX: CubismIdHandle
+  idParamBreath: CubismIdHandle
+  idParamMouthForm: CubismIdHandle
 
   /**
    * The model's internal scale, defined in the moc3 file.
@@ -76,6 +75,17 @@ export class Cubism4InternalModel extends InternalModel {
     this.coreModel = coreModel
     this.settings = settings
     this.options = Object.assign({}, { breathDepth: 1 }, options)
+    this.idManager = CubismFramework.getIdManager()
+    const getIdSafe = (id: string | undefined) => this.idManager.getId(id ?? '')
+
+    this.idParamAngleX = getIdSafe(CubismDefaultParameterId.ParamAngleX)
+    this.idParamAngleY = getIdSafe(CubismDefaultParameterId.ParamAngleY)
+    this.idParamAngleZ = getIdSafe(CubismDefaultParameterId.ParamAngleZ)
+    this.idParamEyeBallX = getIdSafe(CubismDefaultParameterId.ParamEyeBallX)
+    this.idParamEyeBallY = getIdSafe(CubismDefaultParameterId.ParamEyeBallY)
+    this.idParamBodyAngleX = getIdSafe(CubismDefaultParameterId.ParamBodyAngleX)
+    this.idParamBreath = getIdSafe(CubismDefaultParameterId.ParamBreath)
+    this.idParamMouthForm = getIdSafe(CubismDefaultParameterId.ParamMouthForm)
     this.motionManager = new Cubism4MotionManager(this)
     this.parallelMotionManager = []
 
@@ -85,40 +95,57 @@ export class Cubism4InternalModel extends InternalModel {
   protected init() {
     super.init()
 
-    if (this.settings.getEyeBlinkParameters()?.length) {
-      this.eyeBlink = CubismEyeBlink.create(this.settings)
+    const eyeBlinkParameters = this.settings.getEyeBlinkParameters()
+
+    if (eyeBlinkParameters.length) {
+      if (this.isCubismModelSetting(this.settings)) {
+        this.eyeBlink = CubismEyeBlink.create(this.settings)
+      } else {
+        // fallback when CubismModelSettingJson mixin isn't present
+        const parameterIds = new csmVector<CubismIdHandle>()
+        for (const parameter of eyeBlinkParameters) {
+          parameterIds.pushBack(this.idManager.getId(parameter))
+        }
+
+        const eyeBlink = CubismEyeBlink.create()
+        eyeBlink.setParameterIds(parameterIds)
+        this.eyeBlink = eyeBlink
+      }
     }
-    this.breath.setParameters([
+    const breathParams = new csmVector<BreathParameterData>()
+    breathParams.pushBack(
       new BreathParameterData(
         this.idParamAngleX,
         0.0,
         15.0 * this.options.breathDepth!,
         6.5345,
         0.5
-      ),
-      new BreathParameterData(
-        this.idParamAngleY,
-        0.0,
-        8.0 * this.options.breathDepth!,
-        3.5345,
-        0.5
-      ),
+      )
+    )
+    breathParams.pushBack(
+      new BreathParameterData(this.idParamAngleY, 0.0, 8.0 * this.options.breathDepth!, 3.5345, 0.5)
+    )
+    breathParams.pushBack(
       new BreathParameterData(
         this.idParamAngleZ,
         0.0,
         10.0 * this.options.breathDepth!,
         5.5345,
         0.5
-      ),
+      )
+    )
+    breathParams.pushBack(
       new BreathParameterData(
         this.idParamBodyAngleX,
         0.0,
         4.0 * this.options.breathDepth!,
         15.5345,
         0.5
-      ),
-      new BreathParameterData(this.idParamBreath, 0.0, 0.5, 3.2345, 0.5)
-    ])
+      )
+    )
+    breathParams.pushBack(new BreathParameterData(this.idParamBreath, 0.0, 0.5, 3.2345, 0.5))
+
+    this.breath.setParameters(breathParams)
 
     this.renderer.initialize(this.coreModel)
     this.renderer.setIsPremultipliedAlpha(true)
@@ -134,10 +161,12 @@ export class Cubism4InternalModel extends InternalModel {
   protected getLayout(): CommonLayout {
     const layout: CommonLayout = {}
 
-    if (this.settings.layout) {
+    const settingsLayout = this.settings.layout
+
+    if (settingsLayout) {
       // un-capitalize each key to satisfy the common layout format
       // e.g. CenterX -> centerX
-      for (const [key, value] of Object.entries(this.settings.layout)) {
+      for (const [key, value] of Object.entries(settingsLayout)) {
         const commonKey = key.charAt(0).toLowerCase() + key.slice(1)
 
         layout[commonKey as keyof CommonLayout] = value
@@ -161,17 +190,18 @@ export class Cubism4InternalModel extends InternalModel {
     // reset resources that were bound to previous WebGL context
     this.renderer.firstDraw = true
     this.renderer._bufferData = {
-      vertex: null,
-      uv: null,
-      index: null
+      vertex: null as unknown as WebGLBuffer,
+      uv: null as unknown as WebGLBuffer,
+      index: null as unknown as WebGLBuffer
     }
     this.renderer.startUp(gl)
     // null when the model not using mask
     if (this.renderer._clippingManager) {
       this.renderer._clippingManager._currentFrameNo = glContextID
-      this.renderer._clippingManager._maskTexture = undefined
+      this.renderer._clippingManager._maskTexture =
+        null as unknown as typeof this.renderer._clippingManager._maskTexture
     }
-    CubismShader_WebGL.getInstance()._shaderSets = []
+    CubismShaderManager_WebGL.getInstance().setGlContext(gl)
   }
 
   bindTexture(index: number, texture: WebGLTexture): void {
@@ -179,26 +209,45 @@ export class Cubism4InternalModel extends InternalModel {
   }
 
   protected getHitAreaDefs(): CommonHitArea[] {
-    return (
-      this.settings.hitAreas?.map((hitArea) => ({
-        id: hitArea.Id,
-        name: hitArea.Name,
-        index: this.coreModel.getDrawableIndex(hitArea.Id)
-      })) ?? []
-    )
+    const hitAreas = this.settings.hitAreas as { Id?: string; Name?: string }[] | undefined
+
+    if (!hitAreas) {
+      return []
+    }
+
+    return hitAreas
+      .map((hitArea) => {
+        if (typeof hitArea.Id !== 'string' || typeof hitArea.Name !== 'string') {
+          return null
+        }
+
+        return {
+          id: hitArea.Id,
+          name: hitArea.Name,
+          index: this.coreModel.getDrawableIndex(this.idManager.getId(hitArea.Id))
+        }
+      })
+      .filter((hitArea): hitArea is CommonHitArea => !!hitArea)
   }
 
   getDrawableIDs(): string[] {
-    return this.coreModel.getDrawableIds()
+    const count = this.coreModel.getDrawableCount()
+    const ids: string[] = []
+
+    for (let i = 0; i < count; i++) {
+      ids.push(this.coreModel.getDrawableId(i).getString().s)
+    }
+
+    return ids
   }
 
   getDrawableIndex(id: string): number {
-    return this.coreModel.getDrawableIndex(id)
+    return this.coreModel.getDrawableIndex(this.idManager.getId(id))
   }
 
   getDrawableVertices(drawIndex: number | string): Float32Array {
     if (typeof drawIndex === 'string') {
-      drawIndex = this.coreModel.getDrawableIndex(drawIndex)
+      drawIndex = this.getDrawableIndex(drawIndex)
 
       if (drawIndex === -1) throw new TypeError('Unable to find drawable ID: ' + drawIndex)
     }
@@ -300,7 +349,8 @@ export class Cubism4InternalModel extends InternalModel {
     array[13] = matrix.ty
 
     this.renderer.setMvpMatrix(tempMatrix)
-    this.renderer.setRenderState(gl.getParameter(gl.FRAMEBUFFER_BINDING), this.viewport)
+    const framebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer
+    this.renderer.setRenderState(framebuffer, this.viewport)
     this.renderer.drawModel()
   }
 
@@ -317,5 +367,15 @@ export class Cubism4InternalModel extends InternalModel {
     this.coreModel.release()
     ;(this as Partial<this>).renderer = undefined
     ;(this as Partial<this>).coreModel = undefined
+  }
+
+  private isCubismModelSetting(
+    settings: Cubism4ModelSettings
+  ): settings is Cubism4ModelSettings & ICubismModelSetting {
+    return (
+      typeof (settings as unknown as ICubismModelSetting).getEyeBlinkParameterCount ===
+        'function' &&
+      typeof (settings as unknown as ICubismModelSetting).getEyeBlinkParameterId === 'function'
+    )
   }
 }

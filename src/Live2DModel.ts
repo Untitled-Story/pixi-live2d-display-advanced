@@ -151,6 +151,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   automator: Automator
 
   currentGlId: number = 0
+  private lastFrameTime: DOMHighResTimeStamp = performance.now()
 
   private generateUID(): number {
     return ++this.currentGlId
@@ -536,6 +537,13 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     this.internalModel.viewport = [viewport.x, viewport.y, viewport.width, viewport.height]
 
     // update only if the time has changed, as the model will possibly be updated once but rendered multiple times
+    if (!this.deltaTime) {
+      const now = performance.now()
+      this.deltaTime = now - this.lastFrameTime
+      this.lastFrameTime = now
+      this.elapsedTime += this.deltaTime
+    }
+
     if (this.deltaTime) {
       this.internalModel.update(this.deltaTime, this.elapsedTime)
       this.deltaTime = 0

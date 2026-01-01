@@ -1,4 +1,4 @@
-import { CubismConfig } from '@cubism/config'
+import * as CubismFrameworkConfig from '@cubism/cubismframeworkconfig'
 
 const LOG_LEVEL_VERBOSE = 0
 const LOG_LEVEL_WARNING = 1
@@ -57,7 +57,7 @@ export const config = {
    */
   preserveExpressionOnMotion: true,
 
-  cubism4: CubismConfig
+  cubism4: CubismFrameworkConfig
 }
 
 /**
