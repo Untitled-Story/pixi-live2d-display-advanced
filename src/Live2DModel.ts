@@ -7,21 +7,12 @@ import type {
 import { VOLUME } from '@/cubism-common/SoundManager'
 import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
-import {
-  Container,
-  Matrix,
-  ObservablePoint,
-  Point,
-  Renderer,
-  Texture,
-  Ticker,
-  WebGLRenderer
-} from 'pixi.js'
+import type { GlRenderingContext, Renderer, Texture, Ticker } from 'pixi.js'
+import { Container, Matrix, ObservablePoint, Point, WebGLRenderer } from 'pixi.js'
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
 import type { JSONObject } from './types/helpers'
 import { logger } from './utils'
-import type { GlRenderingContext } from 'pixi.js'
 
 export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptions {}
 
@@ -88,9 +79,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   ): InstanceType<M> {
     const model = new this(options) as InstanceType<M>
 
-    Live2DFactory.setupLive2DModel(model, source, options)
-      .then(options?.onLoad)
-      .catch(options?.onError)
+    void Live2DFactory.setupLive2DModel(model, source, options)
+      .then(() => options?.onLoad?.())
+      .catch((err) => options?.onError?.(err as Error))
 
     return model
   }
@@ -300,7 +291,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     )
     const flags: boolean[] = []
     for (const r of result) {
-      flags.push(await r!)
+      flags.push(await r)
     }
     return flags
   }
@@ -332,7 +323,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     )
     const flags: boolean[] = []
     for (const r of result) {
-      flags.push(await r!)
+      flags.push(await r)
     }
     return flags
   }
@@ -538,7 +529,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       }
 
       this.internalModel.bindTexture(i, renderer.texture.getGlSource(texture.source).texture)
-      texture.source._touched = renderer.textureGC.count
+      texture.source.update()
     }
 
     const viewport = renderer.renderTarget.viewport
