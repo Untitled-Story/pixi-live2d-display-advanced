@@ -1,7 +1,7 @@
 # pixi-live2d-display-advanced
 
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
-![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
+![Cubism version](https://img.shields.io/badge/Cubism-2/3/4/5-ff69b4?style=flat-square)
 
 为 [PixiJS](https://github.com/pixijs/pixi.js) v8 提供的 Live2D 插件
 
@@ -57,8 +57,8 @@ Cubism 是 Live2D SDK 的名称，目前有 Cubism 2.1 和更新的版本（Cubi
 
 在使用该插件之前，你需要加载 Cubism 运行时，也就是 Cubism Core
 
-Cubism 5 需要加载 `live2dcubismcore.min.js`
-，可以从 [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
+Cubism 3/4/5 需要加载 `live2dcubismcore.min.js`
+，可以从 [Cubism SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
 里解压出来，或者直接引用[这个链接](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
 （_链接偶尔会挂掉，不要在生产版本中使用！_）
 

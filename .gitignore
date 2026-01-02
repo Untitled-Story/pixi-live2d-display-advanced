@@ -258,3 +258,5 @@ fabric.properties
 
 /types/
 /core/
+!/core/README.md
+!/core/live2d.d.ts

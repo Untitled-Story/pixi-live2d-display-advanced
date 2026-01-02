@@ -1,7 +1,7 @@
 # pixi-live2d-display-advanced
 
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
-![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
+![Cubism version](https://img.shields.io/badge/Cubism-2/3/4/5-ff69b4?style=flat-square)
 
 A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v8
 
@@ -57,8 +57,8 @@ This plugin ships a legacy build for Cubism 2.1 and a modern build for Cubism 3/
 
 Before using this plugin, you need to load the Cubism runtime, also known as Cubism Core.
 
-For Cubism 4, load `live2dcubismcore.min.js`.
-You can extract it from the [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/),
+For Cubism 3, 4, 5, load `live2dcubismcore.min.js`.
+You can extract it from the [Cubism  SDK](https://www.live2d.com/download/cubism-sdk/download-web/),
 or directly reference [this link](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
 (_Note: this link may occasionally be unavailable, do not use it in production!_)
 
