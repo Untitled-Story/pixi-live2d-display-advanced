@@ -47,7 +47,7 @@ export class HitAreaFrames extends Graphics {
   }
 
   private readonly handlePointerMove = (e: FederatedPointerEvent) => {
-    const hitAreaNames = (this.parent as Live2DModel).hitTest(e.data.global.x, e.data.global.y)
+    const hitAreaNames = (this.parent as Live2DModel).hitTest(e.global.x, e.global.y)
 
     this.texts.forEach((text) => {
       text.visible = hitAreaNames.includes(text.text)
