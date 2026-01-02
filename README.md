@@ -14,7 +14,7 @@ playing the last frame of motions. In Project SEKAI-like projects, this greatly 
 
 Additionally, this branch refactors some of the original code, which may improve performance in some areas, but most importantly greatly increases code readability and maintainability.
 
-#### Features
+## Features
 
 - Supports all versions of Live2D models
 - Supports PIXI.RenderTexture and PIXI.Filter
@@ -27,13 +27,13 @@ Additionally, this branch refactors some of the original code, which may improve
 - Play multiple motions simultaneously
 - Play the last frame of motions
 
-#### Requirements
+## Requirements
 
 - PixiJS: 8.x
 - Cubism core: 2.1 or 5
 - Browser: WebGL, ES6
 
-#### Examples
+## Examples
 
 - [Basic Example](https://codepen.io/guansss/pen/oNzoNoz/left?editors=1010)
 - [Interaction Example](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
@@ -42,7 +42,7 @@ Additionally, this branch refactors some of the original code, which may improve
 - [Parallel Motions Example](#parallel-motions)
 - [Play Motion Last Frame](#play-motion-last-frame)
 
-#### Documentation
+## Documentation
 
 - [Documentation](https://guansss.github.io/pixi-live2d-display) (No Chinese translation available yet)
 - [API Docs](https://guansss.github.io/pixi-live2d-display/api/index.html)
@@ -53,7 +53,7 @@ Cubism is the name of the Live2D SDK. There are currently multiple versions: Cub
 
 This plugin ships a legacy build for Cubism 2.1 and a modern build for Cubism 3/4/5, covering all versions of Live2D models.
 
-#### Cubism Core
+### Cubism Core
 
 Before using this plugin, you need to load the Cubism runtime, also known as Cubism Core.
 
@@ -66,7 +66,7 @@ For Cubism 2.1, load `live2d.min.js`. [Since September 4, 2019](https://help.liv
 the official website no longer provides this version of the SDK, but you can find it [here](https://github.com/dylanNew/live2d/tree/master/webgl/Live2D/lib),
 or use this [CDN link](https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js).
 
-#### Separate Bundled Files
+### Separate Bundled Files
 
 This plugin provides separate bundled files for each Cubism runtime to reduce the file size when you only need one version.
 
@@ -82,7 +82,7 @@ To be more clear, here are the ways to use these files:
 
 ## Installation
 
-#### Via npm
+### Via npm
 
 ```sh
 npm install pixi-live2d-display-advanced

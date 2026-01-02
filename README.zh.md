@@ -14,7 +14,7 @@
 
 此外，本分支还重构了一些本项目的原始代码，可能提升了部分性能，但大幅提高了代码可读性，利于维护。
 
-#### 特性
+## 特性
 
 - 支持所有版本的 Live2D 模型
 - 支持 PIXI.RenderTexture 和 PIXI.Filter
@@ -27,13 +27,13 @@
 - 同时播放多个动作
 - 播放动作最末帧
 
-#### 要求
+## 要求
 
 - PixiJS：8.x
 - Cubism core: 2.1 or 5
 - 浏览器：WebGL， ES6
 
-#### 示例
+## 示例
 
 - [基础示例](https://codepen.io/guansss/pen/oNzoNoz/left?editors=1010)
 - [交互示例](https://codepen.io/guansss/pen/KKgXBOP/left?editors=0010)
@@ -42,7 +42,7 @@
 - [多动作同步播放](#多动作同步播放)
 - [播放动作最末帧](#播放动作最末帧)
 
-#### 文档
+## 文档
 
 - [文档](https://guansss.github.io/pixi-live2d-display)（暂无中文翻译）
 - [API 文档](https://guansss.github.io/pixi-live2d-display/api/index.html)
@@ -53,7 +53,7 @@ Cubism 是 Live2D SDK 的名称，目前有 Cubism 2.1 和更新的版本（Cubi
 
 该插件提供了 Cubism 2.1 的旧版构建，以及适用于 Cubism 3/4/5 的现代构建，从而覆盖所有版本的 Live2D 模型。
 
-#### Cubism Core
+### Cubism Core
 
 在使用该插件之前，你需要加载 Cubism 运行时，也就是 Cubism Core
 
@@ -66,7 +66,7 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 ，官方已经不再提供该版本 SDK 的下载，但是可以从 [这里](https://github.com/dylanNew/live2d/tree/master/webgl/Live2D/lib)
 找到，以及你大概想要的 [CDN 链接](https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js)
 
-#### 单独的打包文件
+### 单独的打包文件
 
 该插件为每个 Cubism 运行时提供了单独的打包文件，从而在你只想使用其中一个版本的时候减少需要加载文件的大小。
 
@@ -82,7 +82,7 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 
 ## 安装
 
-#### 通过 npm
+### 通过 npm
 
 ```sh
 npm install pixi-live2d-display-advanced
