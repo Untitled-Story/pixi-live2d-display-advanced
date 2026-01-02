@@ -9,7 +9,12 @@ export function motionSkipToLastFrame(
 ) {
   const motionQueueEntryHandle = queueManager.startMotion(motion, false)
 
-  const motionQueueEntry = queueManager.getCubismMotionQueueEntry(motionQueueEntryHandle)!
+  const motionQueueEntry = queueManager.getCubismMotionQueueEntry(motionQueueEntryHandle)
+
+  if (!motionQueueEntry) {
+    return false
+  }
+
   motionQueueEntry.setStartTime(0)
   motionQueueEntry.setFadeInStartTime(0)
 

@@ -1,3 +1,4 @@
+import './patch-motion'
 import type { CubismLegacyInternalModel } from '@/cubism-legacy/CubismLegacyInternalModel'
 
 export function motionSkipToLastFrame(

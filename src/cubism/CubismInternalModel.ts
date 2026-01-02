@@ -244,9 +244,10 @@ export class CubismInternalModel extends InternalModel {
 
   getDrawableVertices(drawIndex: number | string): Float32Array {
     if (typeof drawIndex === 'string') {
-      drawIndex = this.getDrawableIndex(drawIndex)
+      const id = drawIndex
+      drawIndex = this.getDrawableIndex(id)
 
-      if (drawIndex === -1) throw new TypeError('Unable to find drawable ID: ' + drawIndex)
+      if (drawIndex === -1) throw new TypeError('Unable to find drawable ID: ' + id)
     }
 
     const arr = this.coreModel.getDrawableVertices(drawIndex).slice()

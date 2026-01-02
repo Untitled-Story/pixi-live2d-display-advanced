@@ -142,8 +142,9 @@ export class SoundManager {
   static destroy(): void {
     // dispose() removes given audio from the array, so the loop must be backward
     for (let i = this.contexts.length - 1; i >= 0; i--) {
-      setTimeout(() => {
-        void this.contexts[i]!.close()
+      const context = this.contexts[i]
+      void context?.close().catch((e: unknown) => {
+        logger.warn(TAG, 'Failed to close AudioContext.', e)
       })
     }
 

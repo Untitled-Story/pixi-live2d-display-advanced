@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import type { Live2DModel } from '@/Live2DModel'
 import type { Renderer } from 'pixi.js'
 import { type FederatedPointerEvent, Graphics, Rectangle, Text, TextStyle } from 'pixi.js'
@@ -31,7 +33,10 @@ export class HitAreaFrames extends Graphics {
     })
 
     this.texts = Object.keys(internalModel.hitAreas).map((hitAreaName) => {
-      const text = new Text(hitAreaName, textStyle)
+      const text = new Text({
+        text: hitAreaName,
+        style: textStyle
+      })
 
       text.visible = false
 
@@ -49,7 +54,6 @@ export class HitAreaFrames extends Graphics {
     })
   }
 
-  /** @override */
   protected _render(renderer: Renderer): void {
     const internalModel = (this.parent as Live2DModel).internalModel
 
@@ -72,17 +76,19 @@ export class HitAreaFrames extends Graphics {
       bounds.width = bounds.width * transform.a
       bounds.height = bounds.height * transform.d
 
-      this.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+      this.rect(bounds.x, bounds.y, bounds.width, bounds.height)
 
       text.x = bounds.x + this.strokeWidth * scale
       text.y = bounds.y + this.strokeWidth * scale
       text.scale.set(scale)
     })
 
-    const superRender = (
-      Graphics.prototype as unknown as { _render?: (renderer: Renderer) => void }
+    const render = (
+      Graphics.prototype as unknown as {
+        _render: (renderer: Renderer) => void
+      }
     )._render
-    superRender?.call(this, renderer)
+    render.call(this, renderer)
 
     this.clear()
   }
