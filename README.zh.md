@@ -30,7 +30,7 @@
 #### 要求
 
 - PixiJS：8.x
-- Cubism core: 2.1 or 4
+- Cubism core: 2.1 or 5
 - 浏览器：WebGL， ES6
 
 #### 示例
@@ -49,15 +49,15 @@
 
 ## Cubism
 
-Cubism 是 Live2D SDK 的名称，目前有 3 个版本：Cubism 2.1、Cubism 3、Cubism 4，其中 Cubism 4 可以与 Cubism 3 的模型兼容
+Cubism 是 Live2D SDK 的名称，目前有 Cubism 2.1 和更新的版本（Cubism 3/4/5），其中 Cubism 4/5 可以兼容 Cubism 3 的模型。
 
-该插件使用 Cubism 2.1 和 Cubism 4，从而支持所有版本的 Live2D 模型
+该插件提供了 Cubism 2.1 的旧版构建，以及适用于 Cubism 3/4/5 的现代构建，从而覆盖所有版本的 Live2D 模型。
 
 #### Cubism Core
 
 在使用该插件之前，你需要加载 Cubism 运行时，也就是 Cubism Core
 
-Cubism 4 需要加载 `live2dcubismcore.min.js`
+Cubism 5 需要加载 `live2dcubismcore.min.js`
 ，可以从 [Cubism 4 SDK](https://www.live2d.com/download/cubism-sdk/download-web/)
 里解压出来，或者直接引用[这个链接](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
 （_链接偶尔会挂掉，不要在生产版本中使用！_）
@@ -68,16 +68,16 @@ Cubism 2.1 需要加载 `live2d.min.js`，[从 2019/9/4 起](https://help.live2d
 
 #### 单独的打包文件
 
-该插件为每个 Cubism 版本提供了单独的打包文件，从而在你只想使用其中一个版本的时候减少需要加载文件的大小。
+该插件为每个 Cubism 运行时提供了单独的打包文件，从而在你只想使用其中一个版本的时候减少需要加载文件的大小。
 
-具体来说，为两种版本分别提供了 `cubism2.js` 和 `cubism4.js`，以及一个同时包含了两种版本的 `index.js`
+具体来说，为 Cubism 2.1 提供 `cubism-legacy.js`，为现代运行时提供 `cubism.js`，以及一个同时包含两种运行时的 `index.js`。
 
-注意，如果你想同时支持 Cubism 2.1 和 Cubism 4 的话，请使用 `index.js`，_而不要同时使用_ `cubism2.js` 和 `cubism4.js`
+注意，如果你想同时支持 Cubism 2.1 和现代运行时的话，请使用 `index.js`，_而不要同时使用_ `cubism-legacy.js` 和 `cubism.js`
 
 为了更明确一点，这里列出使用这些文件的方法：
 
-- 使用 `cubism2.js`+`live2d.min.js` 以支持 Cubism 2.1 模型
-- 使用 `cubism4.js`+`live2dcubismcore.min.js` 以支持 Cubism 3 和 Cubism 4 模型
+- 使用 `cubism-legacy.js`+`live2d.min.js` 以支持 Cubism 2.1 模型
+- 使用 `cubism.js`+`live2dcubismcore.min.js` 以支持 Cubism 3/4/5 模型
 - 使用 `index.js`+`live2d.min.js`+`live2dcubismcore.min.js` 以支持所有版本的模型
 
 ## 安装
@@ -92,10 +92,10 @@ npm install pixi-live2d-display-advanced
 import { Live2DModel } from 'pixi-live2d-display-advanced'
 
 // 如果只需要 Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2'
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism-legacy'
 
-// 如果只需要 Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
+// 如果只需要现代运行时（Cubism 3/4/5）
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism'
 ```
 
 ## 基础使用
@@ -142,12 +142,6 @@ manager2.playMotionLastFrame('face_worry_01', 0)
 ```
 
 实质上，这两个方法是等价的。第一种用法只是第二种用法的语法糖。
-
-## v1.0.0 TODOs
-
-- [ ] 完善文档
-- [ ] 更改测试
-- [ ] 自动化构建脚本
 
 项目已默认升级到 pixi.js v8
 

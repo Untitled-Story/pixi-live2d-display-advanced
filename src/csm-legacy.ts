@@ -1,7 +1,3 @@
-/**
- * @module index
- */
-
 export * from './common'
 export * from './cubism-legacy'
-export * from './cubism'
+export * from './types/Cubism2Spec.d'

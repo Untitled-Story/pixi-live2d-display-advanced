@@ -2,6 +2,7 @@
   "name": "pixi-live2d-display-advanced",
   "version": "v2.0.0",
   "description": "Live2D plugin for PixiJS (with lipsync, multi-motion and play the last frame of a motion)",
+  "packageManager": "pnpm@10.26.2",
   "main": "dist/index.js",
   "type": "module",
   "exports": {
@@ -10,15 +11,15 @@
       "import": "./dist/index.es.js",
       "require": "./dist/index.js"
     },
-    "./cubism2": {
+    "./cubism-legacy": {
       "types": "./types/index.d.ts",
-      "import": "./dist/cubism2.es.js",
-      "require": "./dist/cubism2.js"
+      "import": "./dist/cubism-legacy.es.js",
+      "require": "./dist/cubism-legacy.js"
     },
-    "./cubism4": {
+    "./cubism": {
       "types": "./types/index.d.ts",
-      "import": "./dist/cubism4.es.js",
-      "require": "./dist/cubism4.js"
+      "import": "./dist/cubism.es.js",
+      "require": "./dist/cubism.js"
     },
     "./extra": {
       "types": "./types/extra.d.ts",
@@ -47,7 +48,7 @@
     "prepublishOnly": "npm run type && npm run build",
     "lint": "eslint . --config eslint.config.mjs --rule \"prettier/prettier: error\"",
     "lint:fix": "npm run lint -- --fix",
-    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "check": "npm run lint && npm run typecheck"
   },
   "files": [

@@ -30,7 +30,7 @@ Additionally, this branch refactors some of the original code, which may improve
 #### Requirements
 
 - PixiJS: 8.x
-- Cubism core: 2.1 or 4
+- Cubism core: 2.1 or 5
 - Browser: WebGL, ES6
 
 #### Examples
@@ -49,9 +49,9 @@ Additionally, this branch refactors some of the original code, which may improve
 
 ## Cubism
 
-Cubism is the name of the Live2D SDK. There are currently three versions: Cubism 2.1, Cubism 3, and Cubism 4. Cubism 4 is compatible with Cubism 3 models.
+Cubism is the name of the Live2D SDK. There are currently multiple versions: Cubism 2.1 and the modern runtime (Cubism 3/4/5). Cubism 4/5 is compatible with Cubism 3 models.
 
-This plugin supports Cubism 2.1 and Cubism 4, thus supporting all versions of Live2D models.
+This plugin ships a legacy build for Cubism 2.1 and a modern build for Cubism 3/4/5, covering all versions of Live2D models.
 
 #### Cubism Core
 
@@ -68,16 +68,16 @@ or use this [CDN link](https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/
 
 #### Separate Bundled Files
 
-This plugin provides separate bundled files for each Cubism version to reduce the file size when you only need one version.
+This plugin provides separate bundled files for each Cubism runtime to reduce the file size when you only need one version.
 
-Specifically, there is a `cubism2.js` and `cubism4.js` for the two versions, and a combined `index.js` that supports both.
+Specifically, there is a `cubism-legacy.js` for Cubism 2.1 and a `cubism.js` for the modern runtime, plus a combined `index.js` that supports both.
 
-**Note:** If you want to support both Cubism 2.1 and Cubism 4, please use `index.js` and _do not use_ `cubism2.js` and `cubism4.js` together.
+**Note:** If you want to support both Cubism 2.1 and the modern runtime, please use `index.js` and _do not use_ `cubism-legacy.js` and `cubism.js` together.
 
 To be more clear, here are the ways to use these files:
 
-- Use `cubism2.js` + `live2d.min.js` to support Cubism 2.1 models
-- Use `cubism4.js` + `live2dcubismcore.min.js` to support Cubism 3 and Cubism 4 models
+- Use `cubism-legacy.js` + `live2d.min.js` to support Cubism 2.1 models
+- Use `cubism.js` + `live2dcubismcore.min.js` to support Cubism 3/4/5 models
 - Use `index.js` + `live2d.min.js` + `live2dcubismcore.min.js` to support all versions of models
 
 ## Installation
@@ -92,10 +92,10 @@ npm install pixi-live2d-display-advanced
 import { Live2DModel } from 'pixi-live2d-display-advanced'
 
 // If you only need Cubism 2.1
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism2'
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism-legacy'
 
-// If you only need Cubism 4
-import { Live2DModel } from 'pixi-live2d-display-advanced/cubism4'
+// If you only need the modern runtime (Cubism 3/4/5)
+import { Live2DModel } from 'pixi-live2d-display-advanced/cubism'
 ```
 
 ## Basic Usage
@@ -142,12 +142,6 @@ manager2.playMotionLastFrame('face_worry_01', 0)
 ```
 
 Essentially, these two approaches are equivalent. The first usage is just syntactic sugar for the second.
-
-## v1.0.0 TODOs
-
-- [ ] Improve documentation
-- [ ] Update tests
-- [ ] Automate build scripts
 
 The project now targets pixi.js v8 by default.
 

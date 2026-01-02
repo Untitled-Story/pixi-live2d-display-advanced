@@ -1,0 +1,65 @@
+import type { MotionManagerOptions } from '@/cubism-common'
+import { ExpressionManager } from '@/cubism-common/ExpressionManager'
+import type { CubismModelSettings } from '@/cubism/CubismModelSettings'
+import type * as CubismSpec from '@cubism/CubismSpec'
+import type { CubismModel } from '@cubism/model/cubismmodel'
+import { CubismExpressionMotion } from '@cubism/motion/cubismexpressionmotion'
+import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanager'
+
+export class CubismExpressionManager extends ExpressionManager<
+  CubismExpressionMotion,
+  CubismSpec.Expression
+> {
+  readonly expressionDataType = 'arraybuffer' as const
+  readonly queueManager = new CubismMotionQueueManager()
+
+  readonly definitions: CubismSpec.Expression[]
+
+  constructor(settings: CubismModelSettings, options?: MotionManagerOptions) {
+    super(settings, options)
+
+    this.definitions =
+      settings.expressions?.filter(
+        (expression): expression is CubismSpec.Expression =>
+          !!expression && typeof expression.File === 'string'
+      ) ?? []
+
+    this.init()
+  }
+
+  isFinished(): boolean {
+    return this.queueManager.isFinished()
+  }
+
+  getExpressionIndex(name: string): number {
+    return this.definitions.findIndex((def) => def.Name === name)
+  }
+
+  getExpressionFile(definition: CubismSpec.Expression): string {
+    return definition.File
+  }
+
+  createExpression(data: ArrayBuffer, _definition: CubismSpec.Expression | undefined) {
+    return CubismExpressionMotion.create(data, data.byteLength)
+  }
+
+  protected _setExpression(motion: CubismExpressionMotion): number {
+    return this.queueManager.startMotion(motion, false)
+  }
+
+  protected stopAllExpressions(): void {
+    this.queueManager.stopAllMotions()
+  }
+
+  protected updateParameters(model: CubismModel, now: DOMHighResTimeStamp): boolean {
+    return this.queueManager.doUpdateMotion(model, now)
+  }
+
+  protected createDefaultExpression(): CubismExpressionMotion {
+    const fallbackExpression = new TextEncoder().encode(
+      JSON.stringify({ FadeInTime: 0, FadeOutTime: 0, Parameters: [] })
+    ).buffer
+
+    return CubismExpressionMotion.create(fallbackExpression, fallbackExpression.byteLength)
+  }
+}

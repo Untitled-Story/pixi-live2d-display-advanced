@@ -1,5 +1,6 @@
 import type { Live2DModel } from '@/Live2DModel'
-import { Graphics, Rectangle, Renderer, Text, TextStyle, type FederatedPointerEvent } from 'pixi.js'
+import type { Renderer } from 'pixi.js'
+import { type FederatedPointerEvent, Graphics, Rectangle, Text, TextStyle } from 'pixi.js'
 
 const tempBounds = new Rectangle()
 
@@ -17,17 +18,16 @@ export class HitAreaFrames extends Graphics {
 
     this.eventMode = 'static'
 
-    this.on('added', this.init).on('globalpointermove', this.onPointerMove)
+    this.on('added', this.handleInit).on('globalpointermove', this.handlePointerMove)
   }
 
-  init() {
+  private readonly handleInit = () => {
     const internalModel = (this.parent as Live2DModel).internalModel
 
     const textStyle = new TextStyle({
       fontSize: 24,
       fill: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 4
+      stroke: { color: '#000000', width: 4 }
     })
 
     this.texts = Object.keys(internalModel.hitAreas).map((hitAreaName) => {
@@ -41,7 +41,7 @@ export class HitAreaFrames extends Graphics {
     })
   }
 
-  onPointerMove(e: FederatedPointerEvent) {
+  private readonly handlePointerMove = (e: FederatedPointerEvent) => {
     const hitAreaNames = (this.parent as Live2DModel).hitTest(e.data.global.x, e.data.global.y)
 
     this.texts.forEach((text) => {
@@ -55,14 +55,11 @@ export class HitAreaFrames extends Graphics {
 
     // extract scale from the transform matrix, and invert it to ease following calculation
     // https://math.stackexchange.com/a/13165
-    const scale =
-      1 / Math.sqrt(this.transform.worldTransform.a ** 2 + this.transform.worldTransform.b ** 2)
+    const matrix = this.worldTransform
+    const scale = 1 / Math.sqrt(matrix.a ** 2 + matrix.b ** 2)
 
     this.texts.forEach((text) => {
-      this.lineStyle({
-        width: this.strokeWidth * scale,
-        color: text.visible ? this.activeColor : this.normalColor
-      })
+      this.lineStyle(this.strokeWidth * scale, text.visible ? this.activeColor : this.normalColor)
 
       const bounds = internalModel.getDrawableBounds(
         internalModel.hitAreas[text.text]!.index,
@@ -82,7 +79,10 @@ export class HitAreaFrames extends Graphics {
       text.scale.set(scale)
     })
 
-    super._render(renderer)
+    const superRender = (
+      Graphics.prototype as unknown as { _render?: (renderer: Renderer) => void }
+    )._render
+    superRender?.call(this, renderer)
 
     this.clear()
   }

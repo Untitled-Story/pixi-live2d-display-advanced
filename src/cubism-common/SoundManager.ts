@@ -1,7 +1,6 @@
 import { logger, remove } from '@/utils'
 import { config } from '@/config'
-import { sound, Sound } from '@pixi/sound'
-import { webaudio } from '@pixi/sound'
+import { sound, Sound, webaudio } from '@pixi/sound'
 
 const TAG = 'SoundManager'
 export const VOLUME = 0.5
@@ -69,7 +68,7 @@ export class SoundManager {
    * @param onFinish - Callback invoked when the playback has finished.
    */
   static play(audio: Sound, onFinish?: () => void): void {
-    audio.play({
+    void audio.play({
       singleInstance: true,
       complete: () => {
         onFinish?.()
@@ -143,7 +142,9 @@ export class SoundManager {
   static destroy(): void {
     // dispose() removes given audio from the array, so the loop must be backward
     for (let i = this.contexts.length - 1; i >= 0; i--) {
-      setTimeout(() => this.contexts[i]!.close())
+      setTimeout(() => {
+        void this.contexts[i]!.close()
+      })
     }
 
     for (let i = this.audios.length - 1; i >= 0; i--) {

@@ -5,24 +5,24 @@ export function createTexture(
   url: string,
   options: { crossOrigin?: string } = {}
 ): Promise<Texture> {
-  const previousCrossOrigin = loadTextures.config.crossOrigin
+  const config = loadTextures.config
+  const previousCrossOrigin = config?.crossOrigin
 
-  if (options.crossOrigin !== undefined) {
-    loadTextures.config.crossOrigin = options.crossOrigin as any
+  if (options.crossOrigin !== undefined && config) {
+    config.crossOrigin = options.crossOrigin
   }
 
   return Assets.load<Texture>(url)
-    .catch((e) => {
-      if (e instanceof Error) {
-        throw e
+    .catch((error: unknown) => {
+      if (error instanceof Error) {
+        throw error
       }
 
-      const err = new Error('Texture loading error')
-      ;(err as any).event = e
-
-      throw err
+      throw new Error('Texture loading error', { cause: error })
     })
     .finally(() => {
-      loadTextures.config.crossOrigin = previousCrossOrigin
+      if (config) {
+        config.crossOrigin = previousCrossOrigin ?? config.crossOrigin
+      }
     })
 }

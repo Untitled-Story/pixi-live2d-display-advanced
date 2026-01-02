@@ -16,11 +16,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@cubism/*": ["cubism/src/*"]
+      "@cubism/CubismSpec": ["src/types/cubism-shim"],
+      "@cubism/*": ["src/types/cubism-shim"]
     },
     "types": ["node", "offscreencanvas"],
     "lib": ["esnext", "dom", "dom.iterable"]
   },
-  "include": ["**/*"],
+  "include": ["src", "scripts", "playground"],
   "exclude": ["node_modules", "lib", "build*", "./types"]
 }

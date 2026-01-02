@@ -5,8 +5,8 @@ import { build } from 'vite'
 const _dirname = dirname(fileURLToPath(import.meta.url))
 
 const entries = [
-  { entry: 'src/csm2.ts', name: 'cubism2' },
-  { entry: 'src/csm4.ts', name: 'cubism4' },
+  { entry: 'src/csm-legacy.ts', name: 'cubism-legacy' },
+  { entry: 'src/csm.ts', name: 'cubism' },
   { entry: 'src/index.ts', name: 'index' },
   { entry: 'src/extra.ts', name: 'extra' }
 ]

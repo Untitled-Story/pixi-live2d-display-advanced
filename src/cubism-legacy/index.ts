@@ -1,0 +1,13 @@
+import './check-runtime'
+import './patch-motion'
+
+export * from './CubismLegacyExpressionManager'
+export * from './CubismLegacyInternalModel'
+export * from './CubismLegacyModelSettings'
+export * from './CubismLegacyMotionManager'
+export * from './CubismLegacyParallelMotionManager'
+export * from './Live2DExpression'
+export * from './Live2DEyeBlink'
+export * from './Live2DPhysics'
+export * from './Live2DPose'
+export * from './factory'

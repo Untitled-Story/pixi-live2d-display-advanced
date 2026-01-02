@@ -57,7 +57,7 @@ export const config = {
    */
   preserveExpressionOnMotion: true,
 
-  cubism4: CubismFrameworkConfig
+  cubism: CubismFrameworkConfig
 }
 
 /**
