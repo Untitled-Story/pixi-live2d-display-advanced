@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Copies a property at only if it matches the `type`.
  * @param type - Type expected to match `typeof` on the property.
@@ -17,7 +18,7 @@ export function copyProperty<
 
   if (value !== null && typeof value === type) {
     // a type error will occur here, have no idea
-    to[toKey] = value as any
+    to[toKey] = value as unknown as To[ToKey]
   }
 }
 
@@ -38,14 +39,19 @@ export function copyArray<
   const array = from[fromKey]
 
   if (Array.isArray(array)) {
-    to[toKey] = array.filter((item) => item !== null && typeof item === type) as any
+    to[toKey] = array.filter(
+      (item) => item !== null && typeof item === type
+    ) as unknown as To[ToKey]
   }
 }
 
 /**
  * @see {@link https://www.typescriptlang.org/docs/handbook/mixins.html}
  */
-export function applyMixins(derivedCtor: any, baseCtors: any[]) {
+export function applyMixins(
+  derivedCtor: new (...args: any[]) => any,
+  baseCtors: Array<new (...args: any[]) => any>
+) {
   baseCtors.forEach((baseCtor) => {
     Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
       if (name !== 'constructor') {

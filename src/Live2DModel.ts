@@ -506,6 +506,9 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     if (!(renderer instanceof WebGLRenderer)) {
       throw new Error(`Renderer is not supported`)
     }
+    renderer.geometry.resetState()
+    renderer.shader.resetState()
+    renderer.texture.resetState()
 
     let shouldUpdateTexture = false
 
@@ -555,6 +558,24 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
     this.internalModel.updateTransform(internalTransform)
     this.internalModel.draw(renderer.gl)
+
+    renderer.state.resetState()
+    renderer.texture.resetState()
+
+    // Restore Pixi's cached clear color so subsequent clears use the expected background.
+    const clearColor = renderer.renderTarget?.defaultClearColor
+    const clearColorCache = (
+      renderer.renderTarget as unknown as { adaptor?: { _clearColorCache?: number[] } }
+    )?.adaptor?._clearColorCache
+    if (clearColor) {
+      renderer.gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3])
+      if (clearColorCache) {
+        clearColorCache[0] = clearColor[0]
+        clearColorCache[1] = clearColor[1]
+        clearColorCache[2] = clearColor[2]
+        clearColorCache[3] = clearColor[3]
+      }
+    }
   }
 
   /**

@@ -1,4 +1,7 @@
-export type Middleware<T> = (context: T, next: (err?: any) => Promise<void>) => Promise<void>
+export type Middleware<T> = (
+  context: T,
+  next: (err?: Error | null) => Promise<void>
+) => Promise<void>
 
 /**
  * Run middlewares with given context.
@@ -12,7 +15,7 @@ export function runMiddlewares<T>(middleware: Middleware<T>[], context: T): Prom
   let index = -1
   return dispatch(0)
 
-  function dispatch(i: number, err?: Error): Promise<void> {
+  function dispatch(i: number, err?: Error | null): Promise<void> {
     if (err) return Promise.reject(err)
     if (i <= index) return Promise.reject(new Error('next() called multiple times'))
     index = i
@@ -21,7 +24,8 @@ export function runMiddlewares<T>(middleware: Middleware<T>[], context: T): Prom
     try {
       return Promise.resolve(fn(context, dispatch.bind(null, i + 1)))
     } catch (err) {
-      return Promise.reject(err)
+      const error = err instanceof Error ? err : new Error(String(err))
+      return Promise.reject(error)
     }
   }
 }

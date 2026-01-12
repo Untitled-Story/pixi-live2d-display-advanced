@@ -5,6 +5,7 @@ import { Live2DLoader } from '@/factory/Live2DLoader'
 import { createTexture } from '@/factory/texture'
 import { logger } from '@/utils'
 import type { Middleware } from '@/utils/middleware'
+import type { JSONObject } from '@/types/helpers'
 import { noop } from 'lodash-es'
 
 const TAG = 'Live2DFactory'
@@ -14,13 +15,13 @@ const TAG = 'Live2DFactory'
  */
 export const urlToJSON: Middleware<Live2DFactoryContext> = async (context, next) => {
   if (typeof context.source === 'string') {
-    const data = await Live2DLoader.load({
+    const data = (await Live2DLoader.load<JSONObject>({
       url: context.source,
       type: 'json',
       target: context.live2dModel
-    })
+    })) as JSONObject & { url?: string }
 
-    data.url = context.source
+    data.url = typeof data.url === 'string' ? data.url : context.source
 
     context.source = data
 
@@ -42,7 +43,7 @@ export const jsonToSettings: Middleware<Live2DFactoryContext> = async (context, 
     const runtime = Live2DFactory.findRuntime(context.source)
 
     if (runtime) {
-      const settings = runtime.createModelSettings(context.source)
+      const settings = runtime.createModelSettings(context.source as JSONObject & { url: string })
 
       context.settings = settings
       context.live2dModel.emit('settingsLoaded', settings)
@@ -59,7 +60,7 @@ export const waitUntilReady: Middleware<Live2DFactoryContext> = (context, next) 
     const runtime = Live2DFactory.findRuntime(context.settings)
 
     if (runtime) {
-      return runtime.ready().then(next)
+      return runtime.ready().then(() => next())
     }
   }
 
@@ -85,7 +86,7 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
 
       if (settings.pose) {
         tasks.push(
-          Live2DLoader.load({
+          Live2DLoader.load<ArrayBuffer>({
             settings,
             url: settings.pose,
             type: 'arraybuffer',
@@ -104,7 +105,7 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
 
       if (settings.physics) {
         tasks.push(
-          Live2DLoader.load({
+          Live2DLoader.load<ArrayBuffer>({
             settings,
             url: settings.physics,
             type: 'arraybuffer',
@@ -188,7 +189,7 @@ export const createInternalModel: Middleware<Live2DFactoryContext> = async (cont
       throw new Error('Invalid moc data')
     }
 
-    const coreModel = runtime.createCoreModel(modelData)
+    const coreModel: unknown = runtime.createCoreModel(modelData)
 
     context.internalModel = runtime.createInternalModel(coreModel, settings, context.options)
 

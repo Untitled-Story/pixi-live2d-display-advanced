@@ -5,6 +5,7 @@ import type { InternalModel, ModelSettings } from '@/cubism-common'
 import type { Live2DFactory, Live2DFactoryContext } from '@/factory/Live2DFactory'
 import { Live2DLoader } from '@/factory/Live2DLoader'
 import type { Middleware } from '@/utils/middleware'
+import type { JSONObject } from '@/types/helpers'
 import url from 'url'
 import type { ExtendedFileList } from './FileLoader'
 
@@ -24,7 +25,7 @@ export class ZipLoader {
   static uid = 0
 
   static factory: Middleware<Live2DFactoryContext> = async (context, next) => {
-    const source = context.source
+    const source: unknown = context.source
 
     let sourceURL: string
     let zipBlob: Blob | undefined
@@ -141,7 +142,7 @@ export class ZipLoader {
       throw new Error('Empty settings file: ' + settingsFilePath)
     }
 
-    const settingsJSON = JSON.parse(settingsText)
+    const settingsJSON = JSON.parse(settingsText) as JSONObject & { url?: string }
 
     settingsJSON.url = settingsFilePath
 
@@ -151,23 +152,23 @@ export class ZipLoader {
       throw new Error('Unknown settings JSON')
     }
 
-    return runtime.createModelSettings(settingsJSON)
+    return runtime.createModelSettings(settingsJSON as JSONObject & { url: string })
   }
 
-  static async zipReader(data: Blob, url: string): Promise<ZipReader> {
-    throw new Error('Not implemented')
+  static zipReader(data: Blob, url: string): Promise<ZipReader> {
+    return Promise.reject(new Error('Not implemented'))
   }
 
-  static async getFilePaths(reader: ZipReader): Promise<string[]> {
-    throw new Error('Not implemented')
+  static getFilePaths(reader: ZipReader): Promise<string[]> {
+    return Promise.reject(new Error('Not implemented'))
   }
 
-  static async getFiles(reader: ZipReader, paths: string[]): Promise<File[]> {
-    throw new Error('Not implemented')
+  static getFiles(reader: ZipReader, paths: string[]): Promise<File[]> {
+    return Promise.reject(new Error('Not implemented'))
   }
 
-  static async readText(reader: ZipReader, path: string): Promise<string> {
-    throw new Error('Not implemented')
+  static readText(reader: ZipReader, path: string): Promise<string> {
+    return Promise.reject(new Error('Not implemented'))
   }
 
   static releaseReader(reader: ZipReader) {

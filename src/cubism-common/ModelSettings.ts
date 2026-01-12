@@ -1,6 +1,6 @@
 import { folderName } from '@/utils'
 import url from 'url'
-import type { JSONObject } from '../types/helpers'
+import type { JSONObject } from '@/types/helpers'
 
 /**
  * Parses, and provides access to the settings JSON.
@@ -48,19 +48,46 @@ export abstract class ModelSettings {
   protected constructor(json: JSONObject & { url: string }) {
     this.json = json
 
-    const url = (json as any).url
-
-    if (typeof url !== 'string') {
-      // this is not allowed because it'll typically result in errors, including a
-      // fatal error - an OOM that crashes the browser while initializing this cubism2 model,
-      // I'm not kidding!
-      throw new TypeError('The `url` field in settings JSON must be defined as a string.')
-    }
-
-    this.url = url
+    this.url = json.url
 
     // set default name to folder's name
     this.name = folderName(this.url)
+  }
+
+  /**
+   * Ensures the model name is meaningful; falls back to the folder name when missing or placeholder.
+   */
+  protected normalizeName(): void {
+    if (!this.name || this.name.toLowerCase() === 'name') {
+      this.name = folderName(this.url)
+    }
+  }
+
+  /**
+   * Picks the first non-empty, non-placeholder name from candidates and applies it.
+   * Falls back to {@link normalizeName} when no candidate is usable.
+   */
+  protected setModelName(...candidates: (string | undefined)[]): void {
+    for (const candidate of candidates) {
+      const name = typeof candidate === 'string' ? candidate.trim() : ''
+      if (name && name.toLowerCase() !== 'name') {
+        this.name = name
+        return
+      }
+    }
+
+    this.normalizeName()
+  }
+
+  /**
+   * Returns the file name without extension from a path.
+   */
+  protected getFileStem(path?: string): string | undefined {
+    if (!path) return undefined
+
+    const fileName = path.split(/[/\\]/).filter(Boolean).pop()
+
+    return fileName?.replace(/\.[^.]+$/, '')
   }
 
   /**

@@ -37,8 +37,16 @@ export class XHRLoader {
   /**
    * Middleware for Live2DLoader.
    */
-  static loader: Middleware<Live2DLoaderContext> = (context, next) => {
+  static loader: Middleware<Live2DLoaderContext> = (context) => {
     return new Promise<void>((resolve, reject) => {
+      const targetWithEvents = context.target as unknown as {
+        listeners?: (event: string) => unknown[]
+        once?: (event: string, cb: () => void) => void
+      }
+      const cancelListener =
+        context.target && typeof XHRLoader.cancelXHRs === 'function'
+          ? XHRLoader.cancelXHRs.bind(context.target)
+          : undefined
       const xhr = XHRLoader.createXHR(
         context.target,
         context.settings ? context.settings.resolveURL(context.url) : context.url,
@@ -49,6 +57,18 @@ export class XHRLoader {
         },
         reject
       )
+
+      if (context.target && cancelListener) {
+        if (
+          typeof targetWithEvents.listeners === 'function' &&
+          typeof targetWithEvents.once === 'function'
+        ) {
+          const listeners = targetWithEvents.listeners('destroy')
+          if (!Array.isArray(listeners) || !listeners.includes(cancelListener)) {
+            targetWithEvents.once('destroy', cancelListener)
+          }
+        }
+      }
       xhr.send()
     })
   }
@@ -61,7 +81,7 @@ export class XHRLoader {
    * @param onload - Load listener.
    * @param onerror - Error handler.
    */
-  static createXHR<T = any>(
+  static createXHR<T = unknown>(
     target: Live2DLoaderTarget | undefined,
     url: string,
     type: XMLHttpRequestResponseType,
@@ -81,20 +101,15 @@ export class XHRLoader {
       } else {
         xhrSet.add(xhr)
       }
-
-      // TODO: properly type this
-      if (!(target.listeners as any)('destroy').includes(XHRLoader.cancelXHRs)) {
-        ;(target.once as any)('destroy', XHRLoader.cancelXHRs)
-      }
     }
 
     xhr.open('GET', url)
     xhr.responseType = type
     xhr.onload = () => {
       if ((xhr.status === 200 || xhr.status === 0) && xhr.response) {
-        onload(xhr.response)
+        onload(xhr.response as unknown as T)
       } else {
-        ;(xhr.onerror as any)()
+        xhr.onerror?.(new ProgressEvent('error'))
       }
     }
     xhr.onerror = () => {

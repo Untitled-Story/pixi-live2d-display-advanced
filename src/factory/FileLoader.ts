@@ -2,6 +2,7 @@ import type { InternalModel, ModelSettings } from '@/cubism-common'
 import type { Live2DFactoryContext } from '@/factory'
 import { Live2DFactory } from '@/factory'
 import type { Middleware } from '@/utils/middleware'
+import type { JSONObject } from '@/types/helpers'
 import url from 'url'
 
 declare global {
@@ -30,9 +31,6 @@ export type ExtendedFileList = File[] & { settings?: ModelSettings }
  * it only contains a middleware for the Live2DFactory.
  */
 export class FileLoader {
-  // will be set by Live2DFactory
-  private static live2dFactory: typeof Live2DFactory
-
   /**
    * Stores all the object URLs of uploaded files.
    */
@@ -75,7 +73,7 @@ export class FileLoader {
 
       settings.validateFiles(files.map((file) => encodeURI(file.webkitRelativePath)))
 
-      await FileLoader.upload(files, settings)
+      FileLoader.upload(files, settings)
 
       // override the default method to resolve URL from uploaded files
       settings.resolveURL = function (url) {
@@ -92,7 +90,7 @@ export class FileLoader {
           URL.revokeObjectURL(objectURL)
 
           if (FileLoader.filesMap[objectURL]) {
-            for (const resourceObjectURL of Object.values(FileLoader.filesMap[objectURL]!)) {
+            for (const resourceObjectURL of Object.values(FileLoader.filesMap[objectURL])) {
               URL.revokeObjectURL(resourceObjectURL)
             }
           }
@@ -108,7 +106,7 @@ export class FileLoader {
   /**
    * Consumes the files by storing their object URLs. Files not defined in the settings will be ignored.
    */
-  static async upload(files: File[], settings: ModelSettings): Promise<void> {
+  static upload(files: File[], settings: ModelSettings): void {
     const fileMap: Record<string, string> = {}
 
     // only consume the files defined in settings
@@ -139,7 +137,7 @@ export class FileLoader {
     }
 
     const settingsText = await FileLoader.readText(settingsFile)
-    const settingsJSON = JSON.parse(settingsText)
+    const settingsJSON = JSON.parse(settingsText) as JSONObject & { url?: string }
 
     settingsJSON.url = settingsFile.webkitRelativePath
 

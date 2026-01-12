@@ -2,16 +2,16 @@ import type { ModelSettings } from '@/cubism-common/ModelSettings'
 import type { MotionManagerOptions } from '@/cubism-common/MotionManager'
 import { logger } from '@/utils'
 import { EventEmitter } from 'pixi.js'
-import type { ExpressionManagerEvents } from '../types/events'
-import type { JSONObject, Mutable } from '../types/helpers'
+import type { ExpressionManagerEvents } from '@/types/events'
+import type { JSONObject, Mutable } from '@/types/helpers'
 
 /**
  * Abstract expression manager.
  * @emits {@link ExpressionManagerEvents}
  */
 export abstract class ExpressionManager<
-  Expression = any,
-  ExpressionSpec = any
+  Expression = unknown,
+  ExpressionSpec = unknown
 > extends EventEmitter<keyof ExpressionManagerEvents> {
   /**
    * Indicates the content type used when loading expressions.
@@ -62,7 +62,7 @@ export abstract class ExpressionManager<
    */
   destroyed = false
 
-  protected constructor(settings: ModelSettings, options?: MotionManagerOptions) {
+  protected constructor(settings: ModelSettings, _options?: MotionManagerOptions) {
     super()
     this.settings = settings
     this.tag = `ExpressionManager(${settings.name})`
@@ -122,7 +122,7 @@ export abstract class ExpressionManager<
    * Loads the Expression. Will be implemented by Live2DFactory in order to avoid circular dependency.
    * @ignore
    */
-  private _loadExpression(index: number): Promise<Expression | undefined> {
+  private _loadExpression(_index: number): Promise<Expression | undefined> {
     throw new Error('Not implemented.')
   }
 

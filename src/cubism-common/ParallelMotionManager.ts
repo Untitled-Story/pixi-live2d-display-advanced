@@ -103,9 +103,10 @@ export abstract class ParallelMotionManager<
 
     if (groupDefs?.length) {
       const availableIndices: number[] = []
+      const groupMotions = this.manager.motionGroups[group] ?? []
 
-      for (let i = 0; i < groupDefs!.length; i++) {
-        if (this.manager.motionGroups[group]![i] !== null && !this.state.isActive(group, i)) {
+      for (let i = 0; i < groupDefs.length; i++) {
+        if (groupMotions[i] !== null && !this.state.isActive(group, i)) {
           availableIndices.push(i)
         }
       }

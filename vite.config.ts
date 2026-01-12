@@ -2,7 +2,9 @@
 
 import { existsSync, readFileSync } from 'fs'
 import path from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { BaseSequencer } from 'vitest/node'
 import packageJson from './package.json'
@@ -21,6 +23,8 @@ if (!existsSync(cubism2Core) || !existsSync(cubism4Core)) {
   throw new Error('Cubism Core not found. Please run `npm run setup` to download them.')
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export default defineConfig(({ command, mode }) => {
   const isDev = command === 'serve'
   const isTest = mode === 'test'
@@ -75,7 +79,9 @@ export default defineConfig(({ command, mode }) => {
 
             if (id.startsWith('@pixi/')) {
               const packageJsonPath = path.resolve(__dirname, `./node_modules/${id}/package.json`)
-              const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+              const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
+                namespace?: string
+              }
               return packageJson.namespace || 'PIXI'
             }
           }
@@ -86,7 +92,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [
       // pixi.js imports a polyfill package named "url", which breaks Vitest
       // see https://github.com/vitest-dev/vitest/issues/4535
-      isTest && nodePolyfills(),
+      isTest && (nodePolyfills as () => PluginOption)(),
       isTest && {
         name: 'load-cubism-core',
         enforce: 'post' as const,
@@ -120,7 +126,7 @@ export default defineConfig(({ command, mode }) => {
             files = files.filter(([project, file]) => {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              if (file.includes('bundle')) {
+              if ((file as string).includes('bundle')) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 bundleTestFiles.push([project, file])

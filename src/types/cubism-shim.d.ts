@@ -77,7 +77,10 @@ declare module '@cubism/*' {
     setFinishedMotionHandler(handler: (motion: ACubismMotion) => void): void
     setFadeInTime(time: number): void
     setFadeOutTime(time: number): void
-    setEffectIds(eyeBlinkIds: string[], lipSyncIds: string[]): void
+    setEffectIds(
+      eyeBlinkIds: csmVector<CubismIdHandle>,
+      lipSyncIds: csmVector<CubismIdHandle>
+    ): void
     getDuration(): number
     doUpdateParameters(
       model: CubismModel,
@@ -192,6 +195,7 @@ declare module '@cubism/*' {
         Pose?: string
         Physics?: string
         Expressions?: Expression[]
+        Motions?: Record<string, Motion[]>
       }
       Groups?: { Name?: string; Ids?: ParameterGroupId[] }[]
       Layout?: Record<string, number>
@@ -210,9 +214,6 @@ declare module '@cubism/*' {
     getSize(): number
     [index: number]: T
   }
-
-  const _default: unknown
-  export default _default
 }
 
 export {}

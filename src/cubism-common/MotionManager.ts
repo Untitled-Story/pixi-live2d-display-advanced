@@ -173,6 +173,11 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
    * @param options - Options controlling which motions to preload.
    */
   protected setupMotions(options?: MotionManagerOptions): void {
+    if (!this.definitions) {
+      logger.warn(this.tag, 'Motion definitions are not initialized.')
+      return
+    }
+
     for (const group of Object.keys(this.definitions)) {
       // init with the same structure of definitions
       this.motionGroups[group] = []
@@ -197,9 +202,10 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
     }
 
     for (const group of groups) {
-      if (this.definitions[group]) {
-        for (let i = 0; i < this.definitions[group]!.length; i++) {
-          this.loadMotion(group, i).then()
+      const definitions = this.definitions[group]
+      if (definitions) {
+        for (let i = 0; i < definitions.length; i++) {
+          void this.loadMotion(group, i)
         }
       }
     }
@@ -215,12 +221,19 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
    * @emits {@link MotionManagerEvents.motionLoadError}
    */
   async loadMotion(group: string, index: number): Promise<Motion | undefined> {
-    if (!this.definitions[group]?.[index]) {
-      logger.warn(this.tag, `Undefined motion at "${group}"[${index}]`)
+    if (this.destroyed) {
       return undefined
     }
 
-    if (this.motionGroups[group]![index] === null) {
+    const definition = this.getMotionDefinition(group, index)
+
+    if (!definition) {
+      return undefined
+    }
+
+    const groupMotions = (this.motionGroups[group] ??= [])
+
+    if (groupMotions[index] === null) {
       logger.warn(
         this.tag,
         `Cannot start motion at "${group}"[${index}] because it's already failed in loading.`
@@ -228,8 +241,8 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       return undefined
     }
 
-    if (this.motionGroups[group]![index]) {
-      return this.motionGroups[group]![index]!
+    if (groupMotions[index]) {
+      return groupMotions[index]
     }
 
     const motion = await this._loadMotion(group, index)
@@ -238,7 +251,7 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       return
     }
 
-    this.motionGroups[group]![index] = motion ?? null
+    groupMotions[index] = motion ?? null
 
     return motion
   }
@@ -347,7 +360,7 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
           })
         }
       } catch (e) {
-        logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
+        logger.warn(this.tag, 'Failed to play audio', audio.url, e)
         playSuccess = false
       }
 
@@ -405,6 +418,10 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       ignoreParamIds?: string[]
     } = {}
   ): Promise<boolean> {
+    if (this.destroyed) {
+      return false
+    }
+
     if (!this.state.reserve(group, index, priority)) {
       return false
     }
@@ -415,7 +432,7 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       }
     }
 
-    const definition = this.definitions[group]?.[index]
+    const definition = this.getMotionDefinition(group, index)
 
     if (!definition) {
       return false
@@ -474,7 +491,7 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
             that.currentAudio = undefined
           })
         } catch (e) {
-          logger.warn(this.tag, 'Failed to play audio', audio!.url, e)
+          logger.warn(this.tag, 'Failed to play audio', audio.url, e)
         }
       }
     }
@@ -502,7 +519,9 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
 
     this.playing = true
 
-    this._startMotion(motion!, undefined, ignoreParamIds)
+    if (motion) {
+      this._startMotion(motion, undefined, ignoreParamIds)
+    }
 
     return true
   }
@@ -539,13 +558,18 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       onError?: (e: Error) => void
     } = {}
   ): Promise<boolean> {
-    const groupDefs = this.definitions[group]
+    if (this.destroyed) {
+      return false
+    }
+
+    const groupDefs = this.definitions?.[group]
 
     if (groupDefs?.length) {
       const availableIndices: number[] = []
+      const groupMotions = this.motionGroups[group] ?? []
 
-      for (let i = 0; i < groupDefs!.length; i++) {
-        if (this.motionGroups[group]![i] !== null && !this.state.isActive(group, i)) {
+      for (let i = 0; i < groupDefs.length; i++) {
+        if (groupMotions[i] !== null && !this.state.isActive(group, i)) {
           availableIndices.push(i)
         }
       }
@@ -608,8 +632,7 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       this.state.complete()
 
       if (this.state.shouldRequestIdleMotion()) {
-        // noinspection JSIgnoredPromiseFromCall
-        this.startRandomMotion(this.groups.idle, MotionPriority.IDLE)
+        void this.startRandomMotion(this.groups.idle, MotionPriority.IDLE)
       }
     }
 
@@ -735,11 +758,15 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
     index: number,
     expression?: number | string
   ): Promise<unknown> {
+    if (this.destroyed) {
+      return null
+    }
+
     if (!this.state.reserve(group, index, MotionPriority.FORCE)) {
       return null
     }
 
-    const definition = this.definitions[group]?.[index]
+    const definition = this.getMotionDefinition(group, index)
 
     if (!definition) {
       return null
@@ -787,4 +814,14 @@ export abstract class MotionManager<Motion = unknown, MotionSpec = unknown> exte
       expression?: number | string
     }
   ): Promise<boolean>
+
+  private getMotionDefinition(group: string, index: number): MotionSpec | undefined {
+    const definition = this.definitions?.[group]?.[index]
+
+    if (!definition) {
+      logger.warn(this.tag, `Undefined motion at "${group}"[${index}]`)
+    }
+
+    return definition
+  }
 }

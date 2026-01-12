@@ -58,7 +58,7 @@ This plugin ships a legacy build for Cubism 2.1 and a modern build for Cubism 3/
 Before using this plugin, you need to load the Cubism runtime, also known as Cubism Core.
 
 For Cubism 3, 4, 5, load `live2dcubismcore.min.js`.
-You can extract it from the [Cubism  SDK](https://www.live2d.com/download/cubism-sdk/download-web/),
+You can extract it from the [Cubism SDK](https://www.live2d.com/download/cubism-sdk/download-web/),
 or directly reference [this link](https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js)
 (_Note: this link may occasionally be unavailable, do not use it in production!_)
 

@@ -208,7 +208,7 @@ export abstract class InternalModel extends EventEmitter {
       return false
     }
 
-    const drawIndex = this.hitAreas[hitAreaName]!.index
+    const drawIndex = this.hitAreas[hitAreaName].index
 
     const bounds = this.getDrawableBounds(drawIndex, tempBounds)
 

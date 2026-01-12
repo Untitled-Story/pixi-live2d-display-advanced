@@ -91,9 +91,12 @@ export class CubismModelSettings extends ModelSettings {
       (expression): expression is CubismSpec.Expression =>
         !!expression && typeof expression.File === 'string'
     )
-    this.motions = json.Motions
+    this.motions = json.FileReferences.Motions ?? json.Motions
     this.layout = json.Layout
     this.hitAreas = json.HitAreas
+
+    const mocStem = this.getFileStem(this.moc)
+    this.setModelName(mocStem, this.name)
   }
 
   replaceFiles(replace: (file: string, path: string) => string) {

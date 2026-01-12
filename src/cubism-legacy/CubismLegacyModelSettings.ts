@@ -68,6 +68,9 @@ export class CubismLegacyModelSettings extends ModelSettings {
     copyArray('object', json, this, 'expressions', 'expressions')
     copyArray('object', json, this, 'init_params', 'initParams')
     copyArray('object', json, this, 'init_opacities', 'initOpacities')
+
+    const mocStem = this.getFileStem(this.moc)
+    this.setModelName(this.name, mocStem)
   }
 
   replaceFiles(replace: (file: string, path: string) => string) {

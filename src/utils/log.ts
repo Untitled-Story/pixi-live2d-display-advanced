@@ -14,19 +14,19 @@ import { config } from '@/config'
  * ```
  */
 export const logger = {
-  log(tag: string, ...messages: any[]) {
+  log(tag: string, ...messages: unknown[]) {
     if (config.logLevel <= config.LOG_LEVEL_VERBOSE) {
       console.log(`[${tag}]`, ...messages)
     }
   },
 
-  warn(tag: string, ...messages: any[]) {
+  warn(tag: string, ...messages: unknown[]) {
     if (config.logLevel <= config.LOG_LEVEL_WARNING) {
       console.warn(`[${tag}]`, ...messages)
     }
   },
 
-  error(tag: string, ...messages: any[]) {
+  error(tag: string, ...messages: unknown[]) {
     if (config.logLevel <= config.LOG_LEVEL_ERROR) {
       console.error(`[${tag}]`, ...messages)
     }

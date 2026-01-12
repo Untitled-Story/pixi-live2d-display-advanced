@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Live2DModel, Live2DModelOptions } from '@/Live2DModel'
 import type { InternalModel, ModelSettings } from '@/cubism-common'
 import { ExpressionManager, MotionManager } from '@/cubism-common'
@@ -258,9 +259,7 @@ export class Live2DFactory {
         return Promise.resolve(undefined)
       }
 
-      if (!motionManager.listeners('destroy').includes(Live2DFactory.releaseTasks)) {
-        motionManager.once('destroy', Live2DFactory.releaseTasks)
-      }
+      motionManager.once('destroy', () => Live2DFactory.releaseMotionTasks(motionManager))
 
       let tasks = Live2DFactory.motionTasksMap.get(motionManager)
 
@@ -288,10 +287,11 @@ export class Live2DFactory {
           const taskGroup = Live2DFactory.motionTasksMap.get(motionManager)?.[group]
 
           if (taskGroup) {
-            delete taskGroup[index]
+            taskGroup[index] = undefined
           }
 
-          const motion = motionManager.createMotion(data, group, definition)
+          const motionData = data as Parameters<typeof motionManager.createMotion>[0]
+          const motion = motionManager.createMotion(motionData, group, definition)
 
           motionManager.emit('motionLoaded', group, index, motion)
 
@@ -302,7 +302,7 @@ export class Live2DFactory {
           handleError(e)
         })
 
-      return taskGroup[index]!
+      return taskGroup[index]
     } catch (e) {
       logger.warn(motionManager.tag, `Failed to load motion at "${group}"[${index}]\n`, e)
       handleError(e)
@@ -332,9 +332,9 @@ export class Live2DFactory {
         return Promise.resolve(undefined)
       }
 
-      if (!expressionManager.listeners('destroy').includes(Live2DFactory.releaseTasks)) {
-        expressionManager.once('destroy', Live2DFactory.releaseTasks)
-      }
+      expressionManager.once('destroy', () =>
+        Live2DFactory.releaseExpressionTasks(expressionManager)
+      )
 
       let tasks = Live2DFactory.expressionTasksMap.get(expressionManager)
 
@@ -356,10 +356,11 @@ export class Live2DFactory {
           const tasks = Live2DFactory.expressionTasksMap.get(expressionManager)
 
           if (tasks) {
-            delete tasks[index]
+            tasks[index] = undefined
           }
 
-          const expression = expressionManager.createExpression(data, definition)
+          const expressionData = data as Parameters<typeof expressionManager.createExpression>[0]
+          const expression = expressionManager.createExpression(expressionData, definition)
 
           expressionManager.emit('expressionLoaded', index, expression)
 
@@ -370,7 +371,7 @@ export class Live2DFactory {
           handleError(e)
         })
 
-      return tasks[index]!
+      return tasks[index]
     } catch (e) {
       logger.warn(expressionManager.tag, `Failed to load expression at [${index}]\n`, e)
       handleError(e)
@@ -379,12 +380,12 @@ export class Live2DFactory {
     return Promise.resolve(undefined)
   }
 
-  static releaseTasks(this: MotionManager | ExpressionManager) {
-    if (this instanceof MotionManager) {
-      Live2DFactory.motionTasksMap.delete(this)
-    } else {
-      Live2DFactory.expressionTasksMap.delete(this)
-    }
+  static releaseMotionTasks(motionManager: MotionManager) {
+    Live2DFactory.motionTasksMap.delete(motionManager)
+  }
+
+  static releaseExpressionTasks(expressionManager: ExpressionManager) {
+    Live2DFactory.expressionTasksMap.delete(expressionManager)
   }
 }
 

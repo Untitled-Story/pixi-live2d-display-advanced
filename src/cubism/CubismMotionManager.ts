@@ -14,6 +14,9 @@ import { CubismMotionQueueManager } from '@cubism/motion/cubismmotionqueuemanage
 import type { Mutable } from '@/types/helpers'
 import { motionSkipToLastFrame } from '@/cubism/MotionSkipLastFrameHelper'
 import type { CubismInternalModel } from '@/cubism/CubismInternalModel'
+import { csmVector } from '@cubism/type/csmvector'
+import { CubismFramework } from '@cubism/live2dcubismframework'
+import type { CubismIdHandle } from '@cubism/id/cubismid'
 
 export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.Motion> {
   readonly definitions: Partial<Record<string, CubismSpec.Motion[]>>
@@ -116,7 +119,10 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
       )
     }
 
-    motion.setEffectIds(this.eyeBlinkIds, this.lipSyncIds)
+    motion.setEffectIds(
+      this.createIdVector(this.eyeBlinkIds),
+      this.createIdVector(this.lipSyncIds)
+    )
 
     return motion
   }
@@ -169,5 +175,16 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
 
     this.playing = false
     return true
+  }
+
+  private createIdVector(ids: string[]): csmVector<CubismIdHandle> {
+    const vector = new csmVector<CubismIdHandle>()
+    const idManager = CubismFramework.getIdManager()
+
+    for (const id of ids) {
+      vector.pushBack(idManager.getId(id))
+    }
+
+    return vector
   }
 }

@@ -31,7 +31,7 @@ export interface Live2DLoaderContext {
   target?: Live2DLoaderTarget
 
   /** Loaded data. */
-  result?: any
+  result?: unknown
 }
 
 export class Live2DLoader {
@@ -41,7 +41,8 @@ export class Live2DLoader {
    * Loads a resource.
    * @return Promise that resolves with the loaded data in a format that's consistent with the specified `type`.
    */
-  static load<T = any>(context: Live2DLoaderContext): Promise<T> {
-    return runMiddlewares(this.middlewares, context).then(() => context.result)
+  static async load<T = unknown>(context: Live2DLoaderContext): Promise<T> {
+    await runMiddlewares(this.middlewares, context)
+    return context.result as T
   }
 }

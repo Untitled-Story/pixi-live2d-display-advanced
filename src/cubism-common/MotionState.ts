@@ -1,5 +1,5 @@
 import { logger } from '@/utils'
-import { config } from '../config'
+import { config } from '@/config'
 
 /**
  * Indicates the motion priority.
@@ -154,7 +154,7 @@ export class MotionState {
    * @param priority - The priority to be applied.
    * @return True if the request has been approved, i.e. the motion is allowed to play.
    */
-  start(motion: any, group: string, index: number, priority: MotionPriority): boolean {
+  start(motion: unknown, group: string, index: number, priority: MotionPriority): boolean {
     if (priority === MotionPriority.IDLE) {
       this.setReservedIdle(undefined, undefined)
 
