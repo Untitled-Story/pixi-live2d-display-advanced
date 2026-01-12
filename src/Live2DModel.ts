@@ -7,7 +7,14 @@ import type {
 import { VOLUME } from '@/cubism-common/SoundManager'
 import type { Live2DFactoryOptions } from '@/factory/Live2DFactory'
 import { Live2DFactory } from '@/factory/Live2DFactory'
-import type { GlRenderingContext, Renderer, Texture, Ticker } from 'pixi.js'
+import type {
+  GlRenderingContext,
+  InstructionSet,
+  RenderLayer,
+  Renderer,
+  Texture,
+  Ticker
+} from 'pixi.js'
 import { Container, Matrix, ObservablePoint, Point, WebGLRenderer } from 'pixi.js'
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
@@ -21,6 +28,38 @@ const tempMatrix = new Matrix()
 
 export type Live2DConstructor = { new (options?: Live2DModelOptions): Live2DModel }
 
+type Live2DPipeRenderer = Renderer & {
+  renderPipes: {
+    live2d?: Live2DPipe
+    batch?: { break?: (instructionSet: unknown) => void }
+  }
+}
+
+// noinspection JSUnusedGlobalSymbols
+class Live2DPipe {
+  constructor(private renderer: Renderer) {}
+
+  execute(model: Live2DModel): void {
+    if (!model.visible || model.alpha <= 0) {
+      return
+    }
+
+    model._onRender(this.renderer)
+  }
+
+  updateRenderable(): void {}
+
+  destroy(): void {}
+}
+
+function ensureLive2DPipe(renderer: Renderer): void {
+  const r = renderer as Live2DPipeRenderer
+
+  if (!r.renderPipes.live2d) {
+    r.renderPipes.live2d = new Live2DPipe(renderer)
+  }
+}
+
 // noinspection JSUnusedGlobalSymbols
 /**
  * A wrapper that allows the Live2D model to be used as a DisplayObject in PixiJS.
@@ -32,6 +71,17 @@ export type Live2DConstructor = { new (options?: Live2DModelOptions): Live2DMode
  * @emits {@link Live2DModelEvents}
  */
 export class Live2DModel<IM extends InternalModel = InternalModel> extends Container {
+  /** @internal */
+  renderPipeId = 'live2d'
+  /** @internal */
+  get isRenderable(): true {
+    return true
+  }
+  /** @internal */
+  get canBundle(): false {
+    return false
+  }
+
   /**
    * Creates a Live2DModel from given source.
    * @param source - Can be one of: settings file URL, settings JSON object, ModelSettings instance.
@@ -175,6 +225,40 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     this.automator = new Automator(this, options)
     this.onRender = this._onRender.bind(this)
     this.once('modelLoaded', () => this.initializeOnModelLoad(options))
+  }
+
+  /**
+   * Insert this model into Pixi's instruction set so zIndex ordering works with other objects.
+   */
+  collectRenderables(
+    instructionSet: InstructionSet,
+    renderer: Renderer,
+    currentLayer: RenderLayer
+  ): void {
+    const self = this as unknown as {
+      parentRenderLayer?: unknown
+      globalDisplayStatus?: number
+      includeInBuild?: boolean
+    }
+
+    if (self.parentRenderLayer && self.parentRenderLayer !== currentLayer) {
+      return
+    }
+
+    if (self.globalDisplayStatus !== undefined && self.globalDisplayStatus < 0b111) {
+      return
+    }
+
+    if (self.includeInBuild === false) {
+      return
+    }
+
+    ensureLive2DPipe(renderer)
+
+    const pipes = renderer as Live2DPipeRenderer
+    pipes.renderPipes.batch?.break?.(instructionSet)
+
+    instructionSet.add(this)
   }
 
   /**
