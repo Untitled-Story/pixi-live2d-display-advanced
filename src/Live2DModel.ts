@@ -15,7 +15,7 @@ import type {
   Texture,
   Ticker
 } from 'pixi.js'
-import { Container, Matrix, ObservablePoint, Point, WebGLRenderer } from 'pixi.js'
+import { Bounds, Container, Matrix, ObservablePoint, Point, WebGLRenderer } from 'pixi.js'
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
 import type { JSONObject } from './types/helpers'
@@ -25,13 +25,23 @@ export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptio
 
 const tempPoint = new Point()
 const tempMatrix = new Matrix()
+const tempWorldMatrix = new Matrix()
 
 export type Live2DConstructor = { new (options?: Live2DModelOptions): Live2DModel }
 
+type RenderPipeRegistry = Record<
+  string,
+  {
+    push?: (...args: unknown[]) => void
+    pop?: (...args: unknown[]) => void
+    break?: (instructionSet: InstructionSet) => void
+  }
+>
+
 type Live2DPipeRenderer = Renderer & {
-  renderPipes: {
+  renderPipes: RenderPipeRegistry & {
     live2d?: Live2DPipe
-    batch?: { break?: (instructionSet: unknown) => void }
+    batch?: { break?: (instructionSet: InstructionSet) => void }
   }
 }
 
@@ -173,6 +183,25 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * @type {ObservablePoint}
    */
   anchor!: ObservablePoint
+  /** @internal */
+  private readonly _bounds = new Bounds()
+
+  /** @internal */
+  get bounds(): Bounds {
+    this._bounds.clear()
+
+    if (!this.internalModel) {
+      this._bounds.set(0, 0, 0, 0)
+      return this._bounds
+    }
+
+    const width = this.internalModel.width
+    const height = this.internalModel.height
+
+    this._bounds.addFrame(0, 0, width, height, Matrix.IDENTITY)
+
+    return this._bounds
+  }
 
   /**
    * An ID of Gl context that syncs with `renderer.CONTEXT_UID`. Used to check if the GL context has changed.
@@ -201,8 +230,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   automator: Automator
 
   currentGlId: number = 0
-  private lastFrameTime: DOMHighResTimeStamp = performance.now()
-
   private generateUID(): number {
     return ++this.currentGlId
   }
@@ -235,30 +262,71 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     renderer: Renderer,
     currentLayer: RenderLayer
   ): void {
-    const self = this as unknown as {
-      parentRenderLayer?: unknown
-      globalDisplayStatus?: number
-      includeInBuild?: boolean
-    }
-
-    if (self.parentRenderLayer && self.parentRenderLayer !== currentLayer) {
+    if (this.parentRenderLayer && this.parentRenderLayer !== currentLayer) {
       return
     }
 
-    if (self.globalDisplayStatus !== undefined && self.globalDisplayStatus < 0b111) {
+    if (this.globalDisplayStatus < 0b111) {
       return
     }
 
-    if (self.includeInBuild === false) {
+    if (!this.includeInBuild) {
       return
+    }
+
+    if (this.sortableChildren) {
+      this.sortChildren()
     }
 
     ensureLive2DPipe(renderer)
 
-    const pipes = renderer as Live2DPipeRenderer
-    pipes.renderPipes.batch?.break?.(instructionSet)
+    const renderPipes = (renderer as Live2DPipeRenderer).renderPipes
 
-    instructionSet.add(this)
+    const addRenderable = () => {
+      renderPipes.batch?.break?.(instructionSet)
+      instructionSet.add(this)
+    }
+
+    const collectChildren = () => {
+      const children = this.children
+      const length = children.length
+
+      for (let i = 0; i < length; i++) {
+        children[i]!.collectRenderables(instructionSet, renderer, currentLayer)
+      }
+    }
+
+    const effects = this.effects
+
+    if (effects) {
+      for (let i = 0; i < effects.length; i++) {
+        const effect = effects[i]!
+
+        // Inherit renderer resolution so filtered Live2D stays crisp.
+        const filters = (effect as { filters?: { resolution?: unknown }[] | undefined }).filters
+
+        if (filters) {
+          for (const f of filters) {
+            if (f && typeof f.resolution === 'number' && f.resolution === 1) {
+              f.resolution = 'inherit' as const
+            }
+          }
+        }
+
+        renderPipes[effect.pipe]?.push?.(effect, this, instructionSet)
+      }
+
+      addRenderable()
+      collectChildren()
+
+      for (let i = effects.length - 1; i >= 0; i--) {
+        const effect = effects[i]!
+        renderPipes[effect.pipe]?.pop?.(effect, this, instructionSet)
+      }
+    } else {
+      addRenderable()
+      collectChildren()
+    }
   }
 
   /**
@@ -561,13 +629,15 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * Calculates the bounds of the Live2DModel for rendering and interaction purposes.
    */
   protected _calculateBounds(): void {
-    this.getBounds().addFrame(
-      0,
-      0,
-      this.internalModel.width,
-      this.internalModel.height,
-      this.transform.matrix
-    )
+    if (!this.internalModel) {
+      this.getBounds().set(0, 0, 0, 0)
+      return
+    }
+
+    const width = this.internalModel.width
+    const height = this.internalModel.height
+
+    this.getBounds().addFrame(0, 0, width, height, this.transform.matrix)
   }
 
   /**
@@ -623,22 +693,20 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     const viewport = renderer.renderTarget.viewport
     this.internalModel.viewport = [viewport.x, viewport.y, viewport.width, viewport.height]
 
-    // update only if the time has changed, as the model will possibly be updated once but rendered multiple times
-    if (!this.deltaTime) {
-      const now = performance.now()
-      this.deltaTime = now - this.lastFrameTime
-      this.lastFrameTime = now
-      this.elapsedTime += this.deltaTime
+    const frameDelta = this.deltaTime
+    this.deltaTime = 0
+
+    if (frameDelta) {
+      this.internalModel.update(frameDelta, this.elapsedTime)
     }
 
-    if (this.deltaTime) {
-      this.internalModel.update(this.deltaTime, this.elapsedTime)
-      this.deltaTime = 0
-    }
+    const { projectionMatrix, offset } = renderer.globalUniforms.globalUniformData
+    const adjustedWorld = tempWorldMatrix.copyFrom(this.worldTransform)
 
-    const internalTransform = tempMatrix
-      .copyFrom(renderer.globalUniforms.globalUniformData.projectionMatrix)
-      .append(this.worldTransform)
+    adjustedWorld.tx -= offset?.x ?? 0
+    adjustedWorld.ty -= offset?.y ?? 0
+
+    const internalTransform = tempMatrix.copyFrom(projectionMatrix).append(adjustedWorld)
 
     this.internalModel.updateTransform(internalTransform)
     this.internalModel.draw(renderer.gl)

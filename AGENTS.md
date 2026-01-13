@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Layout & Ownership
 
 - `src/` – TypeScript sources for the PixiJS v8 Live2D plugin (core models, factories, utilities).
 - `playground/` – Minimal Vite demo for manual checks only; keep production logic out.
@@ -8,7 +8,13 @@
 - `scripts/` – Build/type/doc helpers (e.g., `build.mjs`, `gen-docs.js`).
 - Generated artifacts: `dist/`, `types/` (do not edit directly). Cubism assets live in `core/` (fetched via setup).
 
-## Build, Test, and Development Commands
+## PixiJS Source (reference only)
+
+- `pixijs/` mirrors upstream PixiJS source for debugging; prefer it over `node_modules` when tracing rendering/filter behavior (e.g., `filters/Filter.ts`, container mixins).
+- Do **not** modify or format `pixijs/`; treat it as vendored reference code. Avoid running lint/tests there unless explicitly asked.
+- Keep links in discussions/tests pointing at `pixijs/src/...` when explaining engine behavior.
+
+## Build, Test, and Development
 
 - `npm run setup` – Fetch Cubism cores/submodules; required before builds/tests.
 - `npm run check` – ESLint + `tsc --noEmit`; must be clean.
@@ -17,25 +23,25 @@
 - `npm test` / `npm run test:u` – Vitest (update snapshots with `:u`).
 - `npm run playground` – Start Vite dev server for manual verification.
 
-## Coding Style & Naming Conventions
+## Coding Style
 
 - TypeScript with strict typing; avoid `any`/casts to silence errors. No `@ts-ignore`.
 - Explicit return types for public APIs; Pixi imports via `import { ... } from 'pixi.js'`.
 - ESLint + Prettier formatting (2-space indent). Keep comments minimal and purposeful.
 - Do not touch `cubism/` submodule code unless explicitly required.
 
-## Testing Guidelines
+## Testing
 
 - Framework: Vitest; browser-enabled tests live alongside sources (`*.test.ts`).
 - Prefer deterministic checks; update snapshots intentionally via `npm run test:u`.
 - Treat `npm run check` as mandatory before submitting changes.
 
-## Commit & Pull Request Guidelines
+## Commits & PRs
 
 - Commits: concise, imperative subjects (e.g., “Fix motion blending edge case”).
 - PRs should state intent/scope, confirm `npm run check` status, and note type-related decisions. Include screenshots/gifs for visual/playground changes when helpful.
 
-## Security & Configuration Tips
+## Security & Configuration
 
 - No network access assumed during tests/builds; ensure `npm run setup` has been executed locally.
 - Do not commit generated outputs or Cubism binaries beyond `core/`.
