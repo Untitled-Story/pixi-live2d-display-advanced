@@ -153,6 +153,10 @@ declare namespace Live2DObfuscated {
 
     culling: boolean
 
+    _$NT: WebGLBuffer | null
+    _$no: WebGLBuffer | null
+    _$vS: WebGLBuffer | null
+
     setGL(gl: WebGLRenderingContext): void;
   }
 

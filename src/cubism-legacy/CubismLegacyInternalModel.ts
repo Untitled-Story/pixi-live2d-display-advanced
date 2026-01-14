@@ -164,12 +164,10 @@ export class CubismLegacyInternalModel extends InternalModel {
     drawParamWebGL.setGL(gl)
     drawParamWebGL.glno = glContextID
 
-    // reset WebGL buffers
-    for (const [key, value] of Object.entries(drawParamWebGL)) {
-      if (value instanceof WebGLBuffer) {
-        ;(drawParamWebGL as unknown as Record<string, WebGLBuffer | null>)[key] = null
-      }
-    }
+    // Reset buffers
+    drawParamWebGL._$NT = null
+    drawParamWebGL._$no = null
+    drawParamWebGL._$vS = null
 
     const clipManager = this.coreModel.getModelContext().clipManager
     clipManager.curFrameNo = glContextID
