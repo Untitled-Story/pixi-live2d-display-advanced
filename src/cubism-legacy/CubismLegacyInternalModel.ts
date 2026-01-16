@@ -54,7 +54,6 @@ export class CubismLegacyInternalModel extends InternalModel {
    * regardless of the model's internal flags.
    */
   disableCulling = false
-
   private hasDrawn = false
 
   constructor(
@@ -332,7 +331,6 @@ export class CubismLegacyInternalModel extends InternalModel {
 
     this.coreModel.setMatrix(tempMatrixArray)
     this.coreModel.draw()
-
     this.hasDrawn = true
     this.disableCulling = disableCulling
   }

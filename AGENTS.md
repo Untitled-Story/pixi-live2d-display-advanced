@@ -1,48 +1,37 @@
 # Repository Guidelines
 
-## Layout & Ownership
+## Project Structure & Module Organization
+- `src/` contains the TypeScript implementation of the PixiJS Live2D plugin (core models, factories, utilities).
+- `src/cubism-legacy/` houses Cubism 2 (CSM2) runtime integrations; the main Cubism 3/4/5 flow lives in `src/` and `src/cubism-common/`.
+- `playground/` is a minimal Vite demo for manual checks only; keep production logic out.
+- `core/` and `cubism/` hold Cubism SDK assets/submodules; treat them as vendored dependencies.
+- Generated outputs include `dist/` (bundles) and `types/` (if generated). Do not edit by hand.
 
-- `src/` – TypeScript sources for the PixiJS v8 Live2D plugin (core models, factories, utilities).
-- `playground/` – Minimal Vite demo for manual checks only; keep production logic out.
-- `docs/` – MkDocs sources; content lives in `docs/docs`.
-- `scripts/` – Build/type/doc helpers (e.g., `build.mjs`, `gen-docs.js`).
-- Generated artifacts: `dist/`, `types/` (do not edit directly). Cubism assets live in `core/` (fetched via setup).
+## Build, Test, and Development Commands
+- `npm run setup`: fetch Cubism cores/submodules required for builds and tests.
+- `npm run check`: run ESLint and `tsc --noEmit` (must be clean).
+- `npm run build`: bundle library outputs to `dist/`.
+- `npm run type`: emit bundled `.d.ts` files to `types/`.
+- `npm test`: run Vitest.
+- `npm run test:u`: update Vitest snapshots.
+- `npm run playground`: start the Vite dev server for manual verification.
 
-## PixiJS Source (reference only)
+## Coding Style & Naming Conventions
+- TypeScript with strict typing; avoid `any` and `@ts-ignore`.
+- Use 2-space indentation via Prettier; lint with ESLint (`npm run check`).
+- Public APIs should have explicit return types.
+- Pixi imports should come from `pixi.js`.
 
-- `pixijs/` mirrors upstream PixiJS source for debugging; prefer it over `node_modules` when tracing rendering/filter behavior (e.g., `filters/Filter.ts`, container mixins).
-- Do **not** modify or format `pixijs/`; treat it as vendored reference code. Avoid running lint/tests there unless explicitly asked.
-- Keep links in discussions/tests pointing at `pixijs/src/...` when explaining engine behavior.
+## Testing Guidelines
+- Framework: Vitest. Tests live alongside sources and use `*.test.ts`.
+- Prefer deterministic tests; update snapshots intentionally with `npm run test:u`.
 
-## Build, Test, and Development
-
-- `npm run setup` – Fetch Cubism cores/submodules; required before builds/tests.
-- `npm run check` – ESLint + `tsc --noEmit`; must be clean.
-- `npm run build` – Bundle library outputs to `dist/`.
-- `npm run type` – Emit bundled `.d.ts` into `types/`.
-- `npm test` / `npm run test:u` – Vitest (update snapshots with `:u`).
-- `npm run playground` – Start Vite dev server for manual verification.
-
-## Coding Style
-
-- TypeScript with strict typing; avoid `any`/casts to silence errors. No `@ts-ignore`.
-- Explicit return types for public APIs; Pixi imports via `import { ... } from 'pixi.js'`.
-- ESLint + Prettier formatting (2-space indent). Keep comments minimal and purposeful.
-- Do not touch `cubism/` submodule code unless explicitly required.
-
-## Testing
-
-- Framework: Vitest; browser-enabled tests live alongside sources (`*.test.ts`).
-- Prefer deterministic checks; update snapshots intentionally via `npm run test:u`.
-- Treat `npm run check` as mandatory before submitting changes.
-
-## Commits & PRs
-
+## Commit & Pull Request Guidelines
 - Commits: concise, imperative subjects (e.g., “Fix motion blending edge case”).
-- PRs should state intent/scope, confirm `npm run check` status, and note type-related decisions. Include screenshots/gifs for visual/playground changes when helpful.
+- PRs: state intent and scope, mention `npm run check` results, and note type-related decisions.
+- Include screenshots or GIFs for visual/playground changes when helpful.
 
-## Security & Configuration
-
-- No network access assumed during tests/builds; ensure `npm run setup` has been executed locally.
-- Do not commit generated outputs or Cubism binaries beyond `core/`.
-- Use provided paths (`resolveURL`, settings helpers) to keep resource references consistent.
+## Security & Configuration Tips
+- Assume no network access during tests/builds; run `npm run setup` beforehand.
+- Do not modify `core/` or `cubism/` unless explicitly required.
+- Use provided helpers (e.g., `resolveURL`) to keep resource references consistent.

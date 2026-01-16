@@ -677,7 +677,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     for (let i = 0; i < this.textures.length; i++) {
       const texture = this.textures[i]!
 
-      if (shouldUpdateTexture || !renderer.texture.getGlSource(texture.source).texture) {
+      const hasGlSource = Boolean(texture.source._gpuData[renderer.uid])
+
+      if (shouldUpdateTexture || !hasGlSource) {
+        // Ensure UNPACK_FLIP_Y is set before Pixi uploads the source to the GPU.
         renderer.gl.pixelStorei(
           WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL,
           this.internalModel.textureFlipY
@@ -687,7 +690,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
       }
 
       this.internalModel.bindTexture(i, renderer.texture.getGlSource(texture.source).texture)
-      texture.source.update()
     }
 
     const viewport = renderer.renderTarget.viewport
