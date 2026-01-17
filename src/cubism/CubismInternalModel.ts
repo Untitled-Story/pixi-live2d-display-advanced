@@ -74,16 +74,15 @@ export class CubismInternalModel extends InternalModel {
     this.settings = settings
     this.options = Object.assign({}, { breathDepth: 1 }, options)
     this.idManager = CubismFramework.getIdManager()
-    const getIdSafe = (id: string | undefined) => this.idManager.getId(id ?? '')
 
-    this.idParamAngleX = getIdSafe(CubismDefaultParameterId.ParamAngleX)
-    this.idParamAngleY = getIdSafe(CubismDefaultParameterId.ParamAngleY)
-    this.idParamAngleZ = getIdSafe(CubismDefaultParameterId.ParamAngleZ)
-    this.idParamEyeBallX = getIdSafe(CubismDefaultParameterId.ParamEyeBallX)
-    this.idParamEyeBallY = getIdSafe(CubismDefaultParameterId.ParamEyeBallY)
-    this.idParamBodyAngleX = getIdSafe(CubismDefaultParameterId.ParamBodyAngleX)
-    this.idParamBreath = getIdSafe(CubismDefaultParameterId.ParamBreath)
-    this.idParamMouthForm = getIdSafe(CubismDefaultParameterId.ParamMouthForm)
+    this.idParamAngleX = this.getIdSafe(CubismDefaultParameterId.ParamAngleX)
+    this.idParamAngleY = this.getIdSafe(CubismDefaultParameterId.ParamAngleY)
+    this.idParamAngleZ = this.getIdSafe(CubismDefaultParameterId.ParamAngleZ)
+    this.idParamEyeBallX = this.getIdSafe(CubismDefaultParameterId.ParamEyeBallX)
+    this.idParamEyeBallY = this.getIdSafe(CubismDefaultParameterId.ParamEyeBallY)
+    this.idParamBodyAngleX = this.getIdSafe(CubismDefaultParameterId.ParamBodyAngleX)
+    this.idParamBreath = this.getIdSafe(CubismDefaultParameterId.ParamBreath)
+    this.idParamMouthForm = this.getIdSafe(CubismDefaultParameterId.ParamMouthForm)
     this.motionManager = new CubismMotionManager(this)
     this.parallelMotionManager = []
 
@@ -149,6 +148,10 @@ export class CubismInternalModel extends InternalModel {
     this.renderer.setIsPremultipliedAlpha(true)
   }
 
+  protected getIdSafe(id: string | undefined): CubismIdHandle {
+    return this.idManager.getId(id ?? '')
+  }
+
   protected getSize(): [number, number] {
     return [
       this.coreModel.getModel().canvasinfo.CanvasWidth,
@@ -196,7 +199,6 @@ export class CubismInternalModel extends InternalModel {
     // null when the model not using mask
     if (this.renderer._clippingManager) {
       this.renderer._clippingManager._currentFrameNo = glContextID
-      this.renderer._clippingManager._maskTexture = null
     }
     CubismShaderManager_WebGL.getInstance().setGlContext(gl)
   }
@@ -289,10 +291,10 @@ export class CubismInternalModel extends InternalModel {
       value = Math.pow(value, 1.15)
       const min_ = value > 0 ? 0.1 : 0
       const max_ = 1
-      value = clamp(value, min_, max_)
-
-      this.motionManager.lipSyncIds.forEach((lipSyncId) =>
-        model.addParameterValueById(lipSyncId, value, smoothing)
+      value = clamp(value, min_, max_) * 20
+      this.motionManager.lipSyncIds.forEach((lipSyncId) => {
+        model.addParameterValueById(this.getIdSafe(lipSyncId), value, smoothing)
+        }
       )
     }
 
