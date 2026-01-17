@@ -7,6 +7,7 @@ const tsc = spawn(
 )
 
 let buf = ''
+let hasError = false
 
 const onData = (data) => {
   buf += data.toString()
@@ -15,6 +16,8 @@ const onData = (data) => {
   for (const line of lines) {
     if (line.startsWith('src/')) {
       process.stdout.write(line + '\n')
+
+      if (!hasError) hasError = true
     }
   }
 }
@@ -22,8 +25,6 @@ const onData = (data) => {
 tsc.stdout.on('data', onData)
 tsc.stderr.on('data', onData)
 
-tsc.on('close', (code) => {
-  if (code !== 0) {
-    process.exit(1)
-  }
+tsc.on('close', () => {
+  process.exit(hasError ? 1 : 0)
 })
