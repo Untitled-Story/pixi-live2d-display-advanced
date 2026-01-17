@@ -26,6 +26,8 @@ export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptio
 const tempPoint = new Point()
 const tempMatrix = new Matrix()
 const tempWorldMatrix = new Matrix()
+const tempDrawableBounds = { x: 0, y: 0, width: 0, height: 0 }
+const tempModelBounds = new Bounds()
 
 export type Live2DConstructor = { new (options?: Live2DModelOptions): Live2DModel }
 
@@ -54,7 +56,7 @@ class Live2DPipe {
       return
     }
 
-    model._onRender(this.renderer)
+    model.renderLive2D(this.renderer)
   }
 
   updateRenderable(): void {}
@@ -185,22 +187,77 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
   anchor!: ObservablePoint
   /** @internal */
   private readonly _bounds = new Bounds()
+  /** @internal */
+  private _boundsDirty = true
+  /** @internal */
+  private _boundsRetryAfterDraw = false
 
   /** @internal */
   get bounds(): Bounds {
-    this._bounds.clear()
-
     if (!this.internalModel) {
       this._bounds.set(0, 0, 0, 0)
       return this._bounds
     }
 
-    const width = this.internalModel.width
-    const height = this.internalModel.height
-
-    this._bounds.addFrame(0, 0, width, height, Matrix.IDENTITY)
+    if (this._boundsDirty) {
+      this.updateDrawableBounds()
+    }
 
     return this._bounds
+  }
+
+  private updateDrawableBounds(): void {
+    if (!this.internalModel) {
+      this._bounds.set(0, 0, 0, 0)
+      this._boundsDirty = false
+      return
+    }
+
+    const drawableIds = this.internalModel.getDrawableIDs()
+    tempModelBounds.clear()
+
+    for (let i = 0; i < drawableIds.length; i++) {
+      const drawableId = drawableIds[i]!
+      const drawableBounds = this.internalModel.getDrawableBounds(drawableId, tempDrawableBounds)
+
+      if (
+        !Number.isFinite(drawableBounds.x) ||
+        !Number.isFinite(drawableBounds.y) ||
+        !Number.isFinite(drawableBounds.width) ||
+        !Number.isFinite(drawableBounds.height)
+      ) {
+        continue
+      }
+
+      tempModelBounds.addFrame(
+        drawableBounds.x,
+        drawableBounds.y,
+        drawableBounds.x + drawableBounds.width,
+        drawableBounds.y + drawableBounds.height,
+        Matrix.IDENTITY
+      )
+    }
+
+    this._bounds.clear()
+
+    if (tempModelBounds.isValid && tempModelBounds.isPositive) {
+      this._bounds.addFrame(
+        tempModelBounds.minX,
+        tempModelBounds.minY,
+        tempModelBounds.maxX,
+        tempModelBounds.maxY,
+        this.internalModel.localTransform
+      )
+      this._boundsRetryAfterDraw = false
+    } else {
+      const width = this.internalModel.originalWidth || this.internalModel.width
+      const height = this.internalModel.originalHeight || this.internalModel.height
+
+      this._bounds.addFrame(0, 0, width, height, this.internalModel.localTransform)
+      this._boundsRetryAfterDraw = true
+    }
+
+    this._boundsDirty = false
   }
 
   /**
@@ -250,7 +307,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     )
 
     this.automator = new Automator(this, options)
-    this.onRender = this._onRender.bind(this)
     this.once('modelLoaded', () => this.initializeOnModelLoad(options))
   }
 
@@ -339,6 +395,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
     // apply anchor to pivot now that the internal model dimensions are available
     this.onAnchorChange()
+    this.updateDrawableBounds()
   }
 
   /**
@@ -656,7 +713,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
    * Renders the Live2DModel to the renderer.
    * @param renderer - The PixiJS Renderer instance.
    */
-  _onRender = (renderer: Renderer) => {
+  renderLive2D = (renderer: Renderer) => {
     if (!(renderer instanceof WebGLRenderer)) {
       throw new Error(`Renderer is not supported`)
     }
@@ -677,6 +734,8 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     for (let i = 0; i < this.textures.length; i++) {
       const texture = this.textures[i]!
 
+      // getGlSource() cannot be used, as it will trigger PixiJS’s material upload
+      // and cause rendering/display errors.
       const hasGlSource = Boolean(texture.source._gpuData[renderer.uid])
 
       if (shouldUpdateTexture || !hasGlSource) {
@@ -693,7 +752,15 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     }
 
     const viewport = renderer.renderTarget.viewport
-    this.internalModel.viewport = [viewport.x, viewport.y, viewport.width, viewport.height]
+    const renderTarget = renderer.renderTarget.renderTarget
+    let viewportY = viewport.y
+
+    if (renderTarget?.isRoot) {
+      const pixelHeight = renderTarget.colorTexture.source.pixelHeight
+      viewportY = pixelHeight - viewport.height - viewport.y
+    }
+
+    this.internalModel.viewport = [viewport.x, viewportY, viewport.width, viewport.height]
 
     const frameDelta = this.deltaTime
     this.deltaTime = 0
@@ -712,6 +779,10 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
     this.internalModel.updateTransform(internalTransform)
     this.internalModel.draw(renderer.gl)
+
+    if (this._boundsRetryAfterDraw) {
+      this.updateDrawableBounds()
+    }
 
     renderer.state.resetState()
     renderer.texture.resetState()

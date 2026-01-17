@@ -84,16 +84,18 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
 
     if (runtime) {
       const tasks: Promise<void>[] = []
+      const optionalDataType: XMLHttpRequestResponseType =
+        settings instanceof CubismLegacyModelSettings ? 'json' : 'arraybuffer'
 
       if (settings.pose) {
         tasks.push(
-          Live2DLoader.load<ArrayBuffer>({
+          Live2DLoader.load<unknown>({
             settings,
             url: settings.pose,
-            type: 'arraybuffer',
+            type: optionalDataType,
             target: internalModel
           })
-            .then((data: ArrayBuffer) => {
+            .then((data: unknown) => {
               internalModel.pose = runtime.createPose(internalModel.coreModel, data)
               context.live2dModel.emit('poseLoaded', internalModel.pose)
             })
@@ -106,13 +108,13 @@ export const setupOptionals: Middleware<Live2DFactoryContext> = async (context, 
 
       if (settings.physics) {
         tasks.push(
-          Live2DLoader.load<ArrayBuffer>({
+          Live2DLoader.load<unknown>({
             settings,
             url: settings.physics,
-            type: 'arraybuffer',
+            type: optionalDataType,
             target: internalModel
           })
-            .then((data: ArrayBuffer) => {
+            .then((data: unknown) => {
               internalModel.physics = runtime.createPhysics(internalModel.coreModel, data)
               context.live2dModel.emit('physicsLoaded', internalModel.physics)
             })
