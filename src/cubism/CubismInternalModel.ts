@@ -285,13 +285,13 @@ export class CubismInternalModel extends InternalModel {
     this.updateNaturalMovements(dt * 1000, now * 1000)
 
     if (this.lipSync && this.motionManager.currentAudio) {
-      const lipSyncGain = 1.3
-      const smoothing = 0.35
+      const lipSyncGain = 1.5
+      const smoothing = 0.4
       let value = this.motionManager.mouthSync() * lipSyncGain
       value = Math.pow(value, 1.15)
       const min_ = value > 0 ? 0.1 : 0
       const max_ = 1
-      value = clamp(value, min_, max_) * 20
+      value = clamp(value, min_, max_)
       this.motionManager.lipSyncIds.forEach((lipSyncId) => {
         model.addParameterValueById(this.getIdSafe(lipSyncId), value, smoothing)
         }
