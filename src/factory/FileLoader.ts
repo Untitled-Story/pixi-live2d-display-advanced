@@ -31,6 +31,9 @@ export type ExtendedFileList = File[] & { settings?: ModelSettings }
  * it only contains a middleware for the Live2DFactory.
  */
 export class FileLoader {
+  // will be set by Live2DFactory
+  static live2dFactory?: typeof Live2DFactory
+
   /**
    * Stores all the object URLs of uploaded files.
    */

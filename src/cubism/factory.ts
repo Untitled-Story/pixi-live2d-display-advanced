@@ -84,11 +84,19 @@ Live2DFactory.registerRuntime({
   },
 
   createPhysics(coreModel: CubismModel, data: unknown): CubismPhysics {
-    return CubismPhysics.create(data)
+    if (!(data instanceof ArrayBuffer)) {
+      throw new TypeError('Cubism physics data must be an ArrayBuffer.')
+    }
+
+    return CubismPhysics.create(data, data.byteLength)
   },
 
   createPose(coreModel: CubismModel, data: unknown): CubismPose {
-    return CubismPose.create(data)
+    if (!(data instanceof ArrayBuffer)) {
+      throw new TypeError('Cubism pose data must be an ArrayBuffer.')
+    }
+
+    return CubismPose.create(data, data.byteLength)
   }
 })
 

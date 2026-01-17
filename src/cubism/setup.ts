@@ -1,5 +1,5 @@
 import { logger } from '@/utils'
-import type { CubismStartupOption } from '@cubism/live2dcubismframework'
+import type { Option } from '@cubism/live2dcubismframework'
 import { CubismFramework, LogLevel } from '@cubism/live2dcubismframework'
 
 let startupPromise: Promise<void>
@@ -42,8 +42,8 @@ export function cubismReady(): Promise<void> {
 /**
  * Starts up the Cubism framework.
  */
-export function startUpCubism(options?: CubismStartupOption) {
-  const startupOptions: CubismStartupOption = {
+export function startUpCubism(options?: Option) {
+  const startupOptions: Option = {
     logFunction: console.log,
     loggingLevel: LogLevel.LogLevel_Verbose,
     ...options

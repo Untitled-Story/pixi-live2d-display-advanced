@@ -44,7 +44,7 @@ export class CubismExpressionManager extends ExpressionManager<
   }
 
   protected _setExpression(motion: CubismExpressionMotion): number {
-    return this.queueManager.startMotion(motion, false)
+    return this.queueManager.startMotion(motion, false) as number
   }
 
   protected stopAllExpressions(): void {

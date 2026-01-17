@@ -55,11 +55,17 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
       this.expressionManager = new CubismExpressionManager(this.settings, options)
     }
 
-    this.queueManager.setEventCallback(
-      (_caller: unknown, eventValue: string | number | undefined, _customData: unknown) => {
-        this.emit('motion:' + String(eventValue))
-      }
-    )
+    this.queueManager.setEventCallback((_caller: unknown, eventValue: MotionEventValue) => {
+      const value =
+        typeof eventValue === 'string'
+          ? eventValue
+          : typeof eventValue === 'number'
+            ? String(eventValue)
+            : eventValue && typeof eventValue === 'object'
+              ? eventValue.s
+              : 'undefined'
+      this.emit('motion:' + value)
+    })
   }
 
   isFinished(): boolean {
@@ -74,15 +80,29 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
     motion.setFinishedMotionHandler(onFinish as (motion: ACubismMotion) => void)
 
     if (ignoreParamIds && ignoreParamIds.length > 0) {
-      motion._motionData.curves = motion._motionData.curves.filter((item: { id?: string }) => {
-        return item.id ? !ignoreParamIds.includes(item.id) : true
-      })
-      motion._motionData.curveCount = motion._motionData.curves.length
+      const curves = motion._motionData.curves
+      const filtered = createCurveContainer(curves)
+      const total = getCurveCount(curves)
+
+      for (let i = 0; i < total; i++) {
+        const curve = getCurveAt(curves, i)
+        if (!curve) {
+          continue
+        }
+        const id = getCurveId(curve)
+
+        if (!id || !ignoreParamIds.includes(id)) {
+          addCurve(filtered, curve)
+        }
+      }
+
+      motion._motionData.curves = filtered
+      motion._motionData.curveCount = getCurveCount(filtered)
     }
 
     this.queueManager.stopAllMotions()
 
-    return this.queueManager.startMotion(motion, false)
+    return this.queueManager.startMotion(motion, false) as number
   }
 
   protected _stopAllMotions(): void {
@@ -186,5 +206,55 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
     }
 
     return vector
+  }
+}
+
+type MotionEventValue = { s: string } | string | number | undefined
+type CurveContainer<T> = csmVector<T> | T[]
+
+function isVector<T>(curves: CurveContainer<T>): curves is csmVector<T> {
+  return typeof (curves as csmVector<T>).pushBack === 'function'
+}
+
+function getCurveCount<T>(curves: CurveContainer<T>): number {
+  return isVector(curves) ? curves.getSize() : curves.length
+}
+
+function getCurveAt<T>(curves: CurveContainer<T>, index: number): T | undefined {
+  return isVector(curves) ? curves.at(index) : curves[index]
+}
+
+function getCurveId(curve: unknown): string | undefined {
+  if (!curve || typeof curve !== 'object') {
+    return undefined
+  }
+
+  const id = (curve as { id?: unknown }).id
+
+  if (typeof id === 'string') {
+    return id
+  }
+
+  if (id && typeof (id as { getString?: () => { s: string } }).getString === 'function') {
+    return (id as { getString: () => { s: string } }).getString().s
+  }
+
+  return undefined
+}
+
+function createCurveContainer<T>(curves: csmVector<T>): csmVector<T>
+function createCurveContainer<T>(curves: CurveContainer<T>): CurveContainer<T> {
+  if (isVector(curves)) {
+    return new csmVector<T>()
+  }
+
+  return []
+}
+
+function addCurve<T>(container: CurveContainer<T>, curve: T): void {
+  if (isVector(container)) {
+    container.pushBack(curve)
+  } else {
+    container.push(curve)
   }
 }

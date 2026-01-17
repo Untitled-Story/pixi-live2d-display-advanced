@@ -63,8 +63,6 @@ export class HitAreaFrames extends Graphics {
     const scale = 1 / Math.sqrt(matrix.a ** 2 + matrix.b ** 2)
 
     this.texts.forEach((text) => {
-      this.lineStyle(this.strokeWidth * scale, text.visible ? this.activeColor : this.normalColor)
-
       const hitArea = internalModel.hitAreas[text.text]
 
       if (!hitArea) {
@@ -91,7 +89,10 @@ export class HitAreaFrames extends Graphics {
       bounds.width = bounds.width * transform.a
       bounds.height = bounds.height * transform.d
 
-      this.rect(bounds.x, bounds.y, bounds.width, bounds.height)
+      this.setStrokeStyle({
+        width: this.strokeWidth * scale,
+        color: text.visible ? this.activeColor : this.normalColor
+      }).rect(bounds.x, bounds.y, bounds.width, bounds.height)
 
       text.x = bounds.x + this.strokeWidth * scale
       text.y = bounds.y + this.strokeWidth * scale

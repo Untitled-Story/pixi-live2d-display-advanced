@@ -2,9 +2,12 @@ import { ModelSettings } from '@/cubism-common/ModelSettings'
 import { applyMixins } from '@/utils'
 import type * as CubismSpec from '@cubism/CubismSpec'
 import { CubismModelSettingJson } from '@cubism/cubismmodelsettingjson'
+import type { CubismIdHandle } from '@cubism/id/cubismid'
+
+type CubismModelSettingJsonMixin = Omit<CubismModelSettingJson, 'name'>
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging, @typescript-eslint/no-empty-object-type
-export interface CubismModelSettings extends CubismModelSettingJson {}
+export interface CubismModelSettings extends CubismModelSettingJsonMixin {}
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class CubismModelSettings extends ModelSettings {
@@ -19,9 +22,9 @@ export class CubismModelSettings extends ModelSettings {
 
   // methods mixed in from CubismModelSettingJson (stubs for type checking)
   declare getEyeBlinkParameterCount: () => number
-  declare getEyeBlinkParameterId: (index: number) => { getString?: () => { s: string } }
+  declare getEyeBlinkParameterId: (index: number) => CubismIdHandle
   declare getLipSyncParameterCount: () => number
-  declare getLipSyncParameterId: (index: number) => { getString?: () => { s: string } }
+  declare getLipSyncParameterId: (index: number) => CubismIdHandle
 
   static isValidJSON(json: unknown): json is CubismSpec.ModelJSON {
     if (!json || typeof json !== 'object') {

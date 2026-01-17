@@ -17,7 +17,7 @@
     "paths": {
       "@/*": ["src/*"],
       "@cubism/CubismSpec": ["src/types/cubism-shim"],
-      "@cubism/*": ["src/types/cubism-shim"]
+      "@cubism/*": ["cubism/src/*"]
     },
     "types": ["node", "offscreencanvas"],
     "lib": ["esnext", "dom", "dom.iterable"]
