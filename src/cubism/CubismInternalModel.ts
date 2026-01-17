@@ -1,6 +1,6 @@
 import type { InternalModelOptions } from '@/cubism-common'
 import type { CommonHitArea, CommonLayout } from '@/cubism-common/InternalModel'
-import { InternalModel } from '@/cubism-common/InternalModel'
+import { InternalModel, normalizeHitAreaDefs } from '@/cubism-common/InternalModel'
 import type { CubismModelSettings } from '@/cubism/CubismModelSettings'
 import { CubismMotionManager } from '@/cubism/CubismMotionManager'
 import { CubismParallelMotionManager } from '@/cubism/CubismParallelMotionManager'
@@ -206,25 +206,16 @@ export class CubismInternalModel extends InternalModel {
   }
 
   protected getHitAreaDefs(): CommonHitArea[] {
-    const hitAreas = this.settings.hitAreas as { Id?: string; Name?: string }[] | undefined
+    const json = this.settings.json as unknown as Record<string, unknown>
+    const hitAreas =
+      (this.settings.hitAreas as { Id?: string; Name?: string }[] | undefined) ??
+      json.HitAreas ??
+      json.hitAreas ??
+      json.hit_areas
 
-    if (!hitAreas) {
-      return []
-    }
-
-    return hitAreas
-      .map((hitArea) => {
-        if (typeof hitArea.Id !== 'string' || typeof hitArea.Name !== 'string') {
-          return null
-        }
-
-        return {
-          id: hitArea.Id,
-          name: hitArea.Name,
-          index: this.coreModel.getDrawableIndex(this.idManager.getId(hitArea.Id))
-        }
-      })
-      .filter((hitArea): hitArea is CommonHitArea => !!hitArea)
+    return normalizeHitAreaDefs(hitAreas, (id) =>
+      this.coreModel.getDrawableIndex(this.idManager.getId(id))
+    )
   }
 
   getDrawableIDs(): string[] {

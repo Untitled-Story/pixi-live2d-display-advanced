@@ -32,6 +32,49 @@ export interface CommonHitArea {
   index: number
 }
 
+export function normalizeHitAreaDefs(
+  raw: unknown,
+  resolveIndex: (id: string) => number
+): CommonHitArea[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+
+  const defs: CommonHitArea[] = []
+
+  for (const hitArea of raw) {
+    if (!hitArea || typeof hitArea !== 'object') {
+      continue
+    }
+
+    const record = hitArea as Record<string, unknown>
+    const id =
+      typeof record.id === 'string'
+        ? record.id
+        : typeof record.Id === 'string'
+          ? record.Id
+          : undefined
+    const name =
+      typeof record.name === 'string'
+        ? record.name
+        : typeof record.Name === 'string'
+          ? record.Name
+          : undefined
+
+    if (!id || !name) {
+      continue
+    }
+
+    defs.push({
+      id,
+      name,
+      index: resolveIndex(id)
+    })
+  }
+
+  return defs
+}
+
 export interface Bounds {
   x: number
   y: number
@@ -179,9 +222,15 @@ export abstract class InternalModel extends EventEmitter {
    * Sets up the hit areas by their definitions in settings.
    */
   protected setupHitAreas() {
-    const definitions = this.getHitAreaDefs().filter((hitArea) => hitArea.index >= 0)
+    const definitions = this.getHitAreaDefs()
+
+    this.hitAreas = {}
 
     for (const def of definitions) {
+      if (!def.name) {
+        continue
+      }
+
       this.hitAreas[def.name] = def
     }
   }
@@ -204,11 +253,26 @@ export abstract class InternalModel extends EventEmitter {
    * @return True if hit.
    */
   isHit(hitAreaName: string, x: number, y: number): boolean {
-    if (!this.hitAreas[hitAreaName]) {
+    const hitArea = this.hitAreas[hitAreaName]
+    if (!hitArea) {
       return false
     }
 
-    const drawIndex = this.hitAreas[hitAreaName].index
+    let drawIndex = hitArea.index
+
+    if (drawIndex < 0) {
+      if (!hitArea.id) {
+        return false
+      }
+
+      drawIndex = this.getDrawableIndex(hitArea.id)
+
+      if (drawIndex < 0) {
+        return false
+      }
+
+      hitArea.index = drawIndex
+    }
 
     const bounds = this.getDrawableBounds(drawIndex, tempBounds)
 

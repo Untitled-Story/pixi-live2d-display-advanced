@@ -65,10 +65,25 @@ export class HitAreaFrames extends Graphics {
     this.texts.forEach((text) => {
       this.lineStyle(this.strokeWidth * scale, text.visible ? this.activeColor : this.normalColor)
 
-      const bounds = internalModel.getDrawableBounds(
-        internalModel.hitAreas[text.text]!.index,
-        tempBounds
-      )
+      const hitArea = internalModel.hitAreas[text.text]
+
+      if (!hitArea) {
+        return
+      }
+
+      let drawIndex = hitArea.index
+
+      if (drawIndex < 0) {
+        drawIndex = internalModel.getDrawableIndex(hitArea.id)
+
+        if (drawIndex < 0) {
+          return
+        }
+
+        hitArea.index = drawIndex
+      }
+
+      const bounds = internalModel.getDrawableBounds(drawIndex, tempBounds)
       const transform = internalModel.localTransform
 
       bounds.x = bounds.x * transform.a + transform.tx

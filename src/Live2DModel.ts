@@ -19,7 +19,6 @@ import { Bounds, Container, Matrix, ObservablePoint, Point, WebGLRenderer } from
 import { Automator, type AutomatorOptions } from './Automator'
 import { Live2DTransform } from './Live2DTransform'
 import type { JSONObject } from './types/helpers'
-import { logger } from './utils'
 
 export interface Live2DModelOptions extends InternalModelOptions, AutomatorOptions {}
 
@@ -218,7 +217,13 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
     for (let i = 0; i < drawableIds.length; i++) {
       const drawableId = drawableIds[i]!
-      const drawableBounds = this.internalModel.getDrawableBounds(drawableId, tempDrawableBounds)
+      const drawableIndex = this.internalModel.getDrawableIndex(drawableId)
+
+      if (drawableIndex < 0) {
+        continue
+      }
+
+      const drawableBounds = this.internalModel.getDrawableBounds(drawableIndex, tempDrawableBounds)
 
       if (
         !Number.isFinite(drawableBounds.x) ||
@@ -635,8 +640,6 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
     const hitAreaNames = this.hitTest(x, y)
 
     if (hitAreaNames.length) {
-      logger.log(this.tag, `Hit`, hitAreaNames)
-
       this.emit('hit', hitAreaNames)
     }
   }
@@ -669,17 +672,16 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
 
     this.toLocal(position, undefined, result, skipUpdate)
     this.internalModel.localTransform.applyInverse(result, result)
-
     return result
   }
 
   /**
    * A method required by `PIXI.InteractionManager` to perform hit-testing.
-   * @param point - A Point in world space.
+   * @param point - A Point in local space.
    * @return True if the point is inside this model.
    */
   containsPoint(point: Point): boolean {
-    return this.getBounds(true).containsPoint(point.x, point.y)
+    return this.bounds.containsPoint(point.x, point.y)
   }
 
   /** @override

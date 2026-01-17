@@ -1,6 +1,7 @@
 import type { InternalModelOptions } from '@/cubism-common'
 import type { CommonHitArea, CommonLayout } from '@/cubism-common/InternalModel'
-import { InternalModel } from '@/cubism-common/InternalModel'
+import { InternalModel, normalizeHitAreaDefs } from '@/cubism-common/InternalModel'
+import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from '@/cubism-common/constants'
 import { clamp, logger } from '@/utils'
 import type { CubismLegacyModelSettings } from './CubismLegacyModelSettings'
 import { CubismLegacyMotionManager } from './CubismLegacyMotionManager'
@@ -16,6 +17,13 @@ const tempMatrixArray = new Float32Array([
   0, 0, 1, 0,
   0, 0, 0, 1
 ])
+
+type CustomHitAreaBounds = {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
 
 export class CubismLegacyInternalModel extends InternalModel {
   settings: CubismLegacyModelSettings
@@ -55,6 +63,7 @@ export class CubismLegacyInternalModel extends InternalModel {
    */
   disableCulling = false
   private hasDrawn = false
+  private customHitAreas?: Record<string, CustomHitAreaBounds> | null
 
   constructor(
     coreModel: Live2DModelWebGL,
@@ -184,13 +193,10 @@ export class CubismLegacyInternalModel extends InternalModel {
   }
 
   protected getHitAreaDefs(): CommonHitArea[] {
-    return (
-      this.settings.hitAreas?.map((hitArea) => ({
-        id: hitArea.id,
-        name: hitArea.name,
-        index: this.coreModel.getDrawDataIndex(hitArea.id)
-      })) || []
-    )
+    const json = this.settings.json as unknown as Record<string, unknown>
+    const rawHitAreas = this.settings.hitAreas ?? json.hit_areas ?? json.HitAreas ?? json.hitAreas
+
+    return normalizeHitAreaDefs(rawHitAreas, (id) => this.coreModel.getDrawDataIndex(id))
   }
 
   getDrawableIDs(): string[] {
@@ -225,11 +231,22 @@ export class CubismLegacyInternalModel extends InternalModel {
   override hitTest(x: number, y: number): string[] {
     if (!this.hasDrawn) {
       logger.warn(
-        'Trying to hit-test a Cubism 2 model that has not been rendered yet. The result will always be empty since the draw data is not ready.'
+        'Trying to hit-test a Cubism 2 model that has not been rendered yet. Drawable hit areas may be empty until the first draw.'
       )
     }
 
-    return super.hitTest(x, y)
+    const drawableHits = super.hitTest(x, y)
+    const customHits = this.hitTestCustom(x, y)
+
+    if (!customHits.length) {
+      return drawableHits
+    }
+
+    if (!drawableHits.length) {
+      return customHits
+    }
+
+    return [...new Set([...drawableHits, ...customHits])]
   }
 
   update(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp): void {
@@ -346,5 +363,111 @@ export class CubismLegacyInternalModel extends InternalModel {
 
     // cubism2 core has a super dumb memory management so there's basically nothing much to do to release the model
     ;(this as Partial<this>).coreModel = undefined
+  }
+
+  private hitTestCustom(x: number, y: number): string[] {
+    const areas = this.getCustomHitAreas()
+
+    if (!areas) {
+      return []
+    }
+
+    const width = this.originalWidth || this.width
+    const height = this.originalHeight || this.height
+
+    if (!width || !height) {
+      return []
+    }
+
+    // Convert to logical coordinates used by hit_areas_custom.
+    const logicalX = (x / width) * LOGICAL_WIDTH - LOGICAL_WIDTH / 2
+    const logicalY = LOGICAL_HEIGHT / 2 - (y / height) * LOGICAL_HEIGHT
+
+    const hits: string[] = []
+
+    for (const [name, area] of Object.entries(areas)) {
+      if (
+        logicalX >= area.minX &&
+        logicalX <= area.maxX &&
+        logicalY >= area.minY &&
+        logicalY <= area.maxY
+      ) {
+        hits.push(name)
+      }
+    }
+
+    return hits
+  }
+
+  private getCustomHitAreas(): Record<string, CustomHitAreaBounds> | null {
+    if (this.customHitAreas !== undefined) {
+      return this.customHitAreas
+    }
+
+    const json = this.settings.json as unknown as Record<string, unknown>
+    const raw =
+      json.hit_areas_custom ?? json.hitAreasCustom ?? json.HitAreasCustom ?? json.HitAreas_Custom
+
+    if (!raw || typeof raw !== 'object') {
+      this.customHitAreas = null
+      return null
+    }
+
+    const rawRecord = raw as Record<string, unknown>
+    const areas: Record<string, CustomHitAreaBounds> = {}
+
+    const addArea = (name: string, xRange: unknown, yRange: unknown) => {
+      if (!name || !Array.isArray(xRange) || !Array.isArray(yRange)) {
+        return
+      }
+
+      if (xRange.length < 2 || yRange.length < 2) {
+        return
+      }
+
+      const x0 = Number(xRange[0])
+      const x1 = Number(xRange[1])
+      const y0 = Number(yRange[0])
+      const y1 = Number(yRange[1])
+
+      if (
+        !Number.isFinite(x0) ||
+        !Number.isFinite(x1) ||
+        !Number.isFinite(y0) ||
+        !Number.isFinite(y1)
+      ) {
+        return
+      }
+
+      areas[name] = {
+        minX: Math.min(x0, x1),
+        maxX: Math.max(x0, x1),
+        minY: Math.min(y0, y1),
+        maxY: Math.max(y0, y1)
+      }
+    }
+
+    for (const [key, value] of Object.entries(rawRecord)) {
+      if (key.endsWith('_x')) {
+        const name = key.slice(0, -2)
+        addArea(name, value, rawRecord[`${name}_y`])
+        continue
+      }
+
+      if (key.endsWith('_y')) {
+        continue
+      }
+
+      if (value && typeof value === 'object') {
+        const record = value as Record<string, unknown>
+        const xRange = record.x ?? record.X
+        const yRange = record.y ?? record.Y
+        addArea(key, xRange, yRange)
+      }
+    }
+
+    this.customHitAreas = Object.keys(areas).length ? areas : null
+
+    return this.customHitAreas
   }
 }
