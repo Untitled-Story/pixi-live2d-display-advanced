@@ -121,6 +121,7 @@ export class CubismParallelMotionManager extends ParallelMotionManager<
     this.queueManager.stopAllMotions()
 
     if (!motionSkipToLastFrame(this.queueManager, this.parent as CubismInternalModel, motion)) {
+      this.playing = false
       return false
     }
     this.playing = false
