@@ -1,9 +1,9 @@
 import type { InternalModel, ModelSettings } from '@/cubism-common'
 import type { Live2DFactoryContext } from '@/factory'
 import { Live2DFactory } from '@/factory'
+import { resolveURL } from '@/utils'
 import type { Middleware } from '@/utils/middleware'
 import type { JSONObject } from '@/types/helpers'
-import url from 'url'
 
 declare global {
   interface File {
@@ -114,7 +114,7 @@ export class FileLoader {
 
     // only consume the files defined in settings
     for (const definedFile of settings.getDefinedFiles()) {
-      const actualPath = decodeURI(url.resolve(settings.url, definedFile))
+      const actualPath = decodeURI(resolveURL(settings.url, definedFile))
 
       const actualFile = files.find((file) => file.webkitRelativePath === actualPath)
 

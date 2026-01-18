@@ -4,9 +4,9 @@
 import type { InternalModel, ModelSettings } from '@/cubism-common'
 import type { Live2DFactory, Live2DFactoryContext } from '@/factory/Live2DFactory'
 import { Live2DLoader } from '@/factory/Live2DLoader'
+import { resolveURL } from '@/utils'
 import type { Middleware } from '@/utils/middleware'
 import type { JSONObject } from '@/types/helpers'
-import url from 'url'
 import type { ExtendedFileList } from './FileLoader'
 
 type ZipReader = never
@@ -103,7 +103,7 @@ export class ZipLoader {
 
     // only consume the files defined in settings
     for (const definedFile of settings.getDefinedFiles()) {
-      const actualPath = decodeURI(url.resolve(settings.url, definedFile))
+      const actualPath = decodeURI(resolveURL(settings.url, definedFile))
 
       if (filePaths.includes(actualPath)) {
         requiredFilePaths.push(actualPath)

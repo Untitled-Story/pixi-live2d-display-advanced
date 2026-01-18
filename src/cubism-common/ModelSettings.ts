@@ -1,5 +1,4 @@
-import { folderName } from '@/utils'
-import url from 'url'
+import { folderName, resolveURL } from '@/utils'
 import type { JSONObject } from '@/types/helpers'
 
 /**
@@ -97,7 +96,7 @@ export abstract class ModelSettings {
    * @return Resolved path.
    */
   resolveURL(path: string): string {
-    return url.resolve(this.url, path)
+    return resolveURL(this.url, path)
   }
 
   /**
