@@ -1,6 +1,6 @@
 {
   "name": "pixi-live2d-display-advanced",
-  "version": "v2.0.0",
+  "version": "2.0.0-beta.1",
   "description": "Live2D plugin for PixiJS (with lipsync, multi-motion and play the last frame of a motion)",
   "packageManager": "pnpm@10.26.2",
   "main": "dist/index.js",
@@ -48,7 +48,7 @@
     "prepublishOnly": "npm run type && npm run build",
     "lint": "eslint . --config eslint.config.mjs --rule \"prettier/prettier: error\"",
     "lint:fix": "npm run lint -- --fix",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "node scripts/typecheck-src.mjs",
     "check": "npm run lint && npm run typecheck"
   },
   "files": [
