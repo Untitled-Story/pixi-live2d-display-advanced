@@ -10,3 +10,7 @@ export function clamp(num: number, lower: number, upper: number) {
 export function rand(min: number, max: number) {
   return Math.random() * (max - min) + min
 }
+
+export function MBToByte(value: number): number {
+  return value * 1024 * 1024
+}

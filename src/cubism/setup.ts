@@ -1,9 +1,24 @@
-import { logger } from '@/utils'
+import { logger, MBToByte } from '@/utils'
 import type { Option } from '@cubism/live2dcubismframework'
 import { CubismFramework, LogLevel } from '@cubism/live2dcubismframework'
 
 let startupPromise: Promise<void>
 let startupRetries = 20
+
+let cubismMemory = 16
+
+interface CubismConfig {
+  memorySizeMB?: number
+}
+
+/**
+ * Configures global Cubism startup settings.
+ */
+export function configureCubism(config: CubismConfig = {}): void {
+  if (config.memorySizeMB != null) {
+    cubismMemory = config.memorySizeMB
+  }
+}
 
 /**
  * Promises that the Cubism framework is ready to work.
@@ -42,13 +57,15 @@ export function cubismReady(): Promise<void> {
 /**
  * Starts up the Cubism framework.
  */
-export function startUpCubism(options?: Option) {
+export function startUpCubism(options?: Option, memorySizeMB?: number) {
   const startupOptions: Option = {
     logFunction: console.log,
     loggingLevel: LogLevel.LogLevel_Verbose,
     ...options
   }
 
+  const memory = memorySizeMB ?? cubismMemory
+
   CubismFramework.startUp(startupOptions)
-  CubismFramework.initialize()
+  CubismFramework.initialize(MBToByte(memory))
 }
