@@ -1,0 +1,6 @@
+{
+  "name": "@types/css-font-loading-module",
+  "version": "0.0.12",
+  "private": true,
+  "types": "index.d.ts"
+}

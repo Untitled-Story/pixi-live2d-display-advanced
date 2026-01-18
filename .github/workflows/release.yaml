@@ -21,7 +21,9 @@ jobs:
       - run: npm run setup
 
       - name: Build Cubism SDK
-        run: npm run build
+        run: |
+          npm install
+          npm run build
         working-directory: cubism
 
       - name: Publish to NPM
