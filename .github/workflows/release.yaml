@@ -5,7 +5,7 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  Release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 25
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
 
       - run: npm install
       - run: npm run setup
