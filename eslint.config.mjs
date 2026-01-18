@@ -23,9 +23,9 @@ export default defineConfig([
     '**/coverage',
     '**/test.build',
     'types',
-    '**/core',
-    '!core/README.md',
-    '!core/live2d.d.ts'
+    '**/Core',
+    '!Core/README.md',
+    '!Core/live2d.d.ts'
   ]),
   {
     extends: compat.extends(

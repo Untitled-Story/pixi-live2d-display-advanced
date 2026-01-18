@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
-/// <reference path="../core/live2d.d.ts"/>
-/// <reference path="../core/live2dcubismcore.d.ts"/>
+/// <reference path="../Core/live2d.d.ts"/>
+/// <reference path="../Core/live2dcubismcore.d.ts"/>
 /// <reference path="./types/env.d.ts"/>
 
 export * from './cubism-common'

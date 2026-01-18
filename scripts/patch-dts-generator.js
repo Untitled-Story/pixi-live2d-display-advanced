@@ -57,27 +57,55 @@ const legacyInsertion = `
     });
 `
 
-if (!patchContent.includes(insertion)) {
-  let nextPatchContent = patchContent
-
-  if (nextPatchContent.includes(legacyInsertion)) {
-    nextPatchContent = nextPatchContent.replace(legacyInsertion, insertion)
-  } else {
-    const patchContentLines = nextPatchContent.split('\n')
-
-    const lineIndex = patchContentLines.findIndex(
-      (line, i) => i >= insertionLineIndex && line.includes('return declarations;')
-    )
-
-    if (lineIndex < insertionLineIndex) {
-      throw new Error('Cannot find insertion point')
+const stripPatchedBlocks = (content) => {
+  const lines = content.split('\n')
+  const nextLines = []
+  const skipBlock = (startIndex) => {
+    let endIndex = startIndex
+    for (; endIndex < lines.length; endIndex += 1) {
+      if (lines[endIndex].includes('declarations.set(fileName, data);')) {
+        // Skip the closing "});" line if it exists.
+        if (lines[endIndex + 1]?.includes('});')) {
+          endIndex += 1
+        }
+        break
+      }
     }
+    return endIndex
+  }
+  for (let i = 0; i < lines.length; i += 1) {
+    const isReferenceTargetsBlock = lines[i].includes('const referenceTargets = [')
+    const isLegacyBlock =
+      lines[i].includes('declarations.forEach((data, fileName) => {') &&
+      lines[i + 1]?.includes('if (data.startsWith(\'/// <reference\'))')
+    if (isReferenceTargetsBlock || isLegacyBlock) {
+      i = skipBlock(i)
+      continue
+    }
+    nextLines.push(lines[i])
+  }
+  return nextLines.join('\n')
+}
 
-    patchContentLines.splice(lineIndex, 0, insertion)
-    nextPatchContent = patchContentLines.join('\n')
+let nextPatchContent = stripPatchedBlocks(patchContent)
+
+if (nextPatchContent.includes(legacyInsertion)) {
+  nextPatchContent = nextPatchContent.replace(legacyInsertion, insertion)
+} else {
+  const patchContentLines = nextPatchContent.split('\n')
+
+  const lineIndex = patchContentLines.findIndex(
+    (line, i) => i >= insertionLineIndex && line.includes('return declarations;')
+  )
+
+  if (lineIndex < insertionLineIndex) {
+    throw new Error('Cannot find insertion point')
   }
 
+  patchContentLines.splice(lineIndex, 0, insertion)
+  nextPatchContent = patchContentLines.join('\n')
+}
+
+if (nextPatchContent !== patchContent) {
   writeFileSync(patchFile, nextPatchContent)
-} else {
-  // already patched, skip
 }

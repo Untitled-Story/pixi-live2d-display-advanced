@@ -5,8 +5,8 @@ import { defineConfig } from 'vite'
 import packageJson from './package.json'
 
 const cubismSubmodule = path.resolve(__dirname, 'cubism')
-const cubism2Core = path.resolve(__dirname, 'core/live2d.min.js')
-const cubism4Core = path.resolve(__dirname, 'core/live2dcubismcore.js')
+const cubism2Core = path.resolve(__dirname, 'Core/live2d.min.js')
+const cubism4Core = path.resolve(__dirname, 'Core/live2dcubismcore.js')
 const require = createRequire(path.resolve(__dirname, 'package.json'))
 const pixiPackageRoot = (() => {
   try {

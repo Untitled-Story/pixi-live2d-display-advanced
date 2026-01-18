@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 const overwriteExisting = true
 const _dirname = dirname(fileURLToPath(import.meta.url))
-const coreDir = resolve(_dirname, '../core') + '/'
+const coreDir = resolve(_dirname, '../Core') + '/'
 
 const assets = [
   {

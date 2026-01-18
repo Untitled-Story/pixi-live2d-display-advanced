@@ -257,6 +257,6 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/node,webstorm
 
 /types/
-/core/
-!/core/README.md
-!/core/live2d.d.ts
+/Core/
+!/Core/README.md
+!/Core/live2d.d.ts
