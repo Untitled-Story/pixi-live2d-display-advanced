@@ -5,7 +5,7 @@ on:
       - 'v*'
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -26,15 +26,22 @@ jobs:
           npm run build
         working-directory: cubism
 
-      - name: Publish to NPM
+      - name: Compute release metadata
         run: |
           REF="${GITHUB_REF_NAME}"
           TAG="latest"
+          PRERELEASE="false"
           if [[ "$REF" =~ -(alpha|beta|rc)([.-][0-9A-Za-z]+)?$ ]]; then
             TAG="nightly"
+            PRERELEASE="true"
           fi
-          echo "Publishing to npm with tag: ${TAG} (ref: ${REF})"
-          npm publish --tag "${TAG}"
+          echo "RELEASE_TAG=${TAG}" >> "${GITHUB_ENV}"
+          echo "PRERELEASE=${PRERELEASE}" >> "${GITHUB_ENV}"
+
+      - name: Publish to NPM
+        run: |
+          echo "Publishing to npm with tag: ${RELEASE_TAG} (ref: ${GITHUB_REF_NAME})"
+          npm publish --tag "${RELEASE_TAG}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -44,3 +51,4 @@ jobs:
           generate_release_notes: true
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
+          prerelease: ${{ env.PRERELEASE == 'true' }}
