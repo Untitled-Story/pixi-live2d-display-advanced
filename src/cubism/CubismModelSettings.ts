@@ -64,9 +64,7 @@ export class CubismModelSettings extends ModelSettings {
       (!Array.isArray(expressions) ||
         expressions.some((expression) => !isValidExpression(expression)))
 
-    return !hasInvalidExpressions;
-
-
+    return !hasInvalidExpressions
   }
 
   constructor(json: CubismSpec.ModelJSON & { url: string }) {

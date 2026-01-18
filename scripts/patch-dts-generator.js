@@ -29,6 +29,26 @@ const typeRefs = readFileSync(refFile, 'utf8')
   .join('\n')
 
 const insertion = `
+    const referenceTargets = [
+        path.join('src', 'index.d.ts'),
+        path.join('src', 'extra.d.ts')
+    ];
+    declarations.forEach((data, fileName) => {
+        if (!referenceTargets.some((target) => fileName.endsWith(target))) {
+            return;
+        }
+        if (data.startsWith('/// <reference')) {
+            data = data.replace(/\\/\\/\\/ <[\\s\\S]+\\/>/m, ${JSON.stringify(typeRefs)});
+        } else {
+            data = ${JSON.stringify(typeRefs)} + '\\n' + data;
+        }
+        declarations.set(fileName, data);
+    });
+`
+
+const patchContent = readFileSync(patchFile, 'utf8')
+
+const legacyInsertion = `
     declarations.forEach((data, fileName) => {
         if (data.startsWith('/// <reference')) {
             data = data.replace(/\\/\\/\\/ <[\\s\\S]+\\/>/m, ${JSON.stringify(typeRefs)});
@@ -37,22 +57,27 @@ const insertion = `
     });
 `
 
-const patchContent = readFileSync(patchFile, 'utf8')
-
 if (!patchContent.includes(insertion)) {
-  const patchContentLines = patchContent.split('\n')
+  let nextPatchContent = patchContent
 
-  const lineIndex = patchContentLines.findIndex(
-    (line, i) => i >= insertionLineIndex && line.includes('return declarations;')
-  )
+  if (nextPatchContent.includes(legacyInsertion)) {
+    nextPatchContent = nextPatchContent.replace(legacyInsertion, insertion)
+  } else {
+    const patchContentLines = nextPatchContent.split('\n')
 
-  if (lineIndex < insertionLineIndex) {
-    throw new Error('Cannot find insertion point')
+    const lineIndex = patchContentLines.findIndex(
+      (line, i) => i >= insertionLineIndex && line.includes('return declarations;')
+    )
+
+    if (lineIndex < insertionLineIndex) {
+      throw new Error('Cannot find insertion point')
+    }
+
+    patchContentLines.splice(lineIndex, 0, insertion)
+    nextPatchContent = patchContentLines.join('\n')
   }
 
-  patchContentLines.splice(lineIndex, 0, insertion)
-
-  writeFileSync(patchFile, patchContentLines.join('\n'))
+  writeFileSync(patchFile, nextPatchContent)
 } else {
   // already patched, skip
 }

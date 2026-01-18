@@ -69,3 +69,20 @@ export function startUpCubism(options?: Option, memorySizeMB?: number) {
   CubismFramework.startUp(startupOptions)
   CubismFramework.initialize(MBToByte(memory))
 }
+
+/**
+ * Reconfigures Cubism settings and restarts the framework so they take effect.
+ */
+export function reconfigureCubism(config: CubismConfig = {}): void {
+  configureCubism(config)
+
+  if (CubismFramework.isInitialized()) {
+    CubismFramework.dispose()
+  }
+
+  if (CubismFramework.isStarted()) {
+    CubismFramework.cleanUp()
+  }
+
+  startUpCubism(undefined, config.memorySizeMB)
+}

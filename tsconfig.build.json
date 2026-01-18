@@ -1,6 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "paths": {
+      "@/*": ["src/*"],
+      "@cubism/CubismSpec": ["src/types/cubism-shim"],
+      "@cubism/*": ["cubism/dist/*"]
+    }
   }
 }

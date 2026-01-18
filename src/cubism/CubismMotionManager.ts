@@ -139,10 +139,7 @@ export class CubismMotionManager extends MotionManager<CubismMotion, CubismSpec.
       )
     }
 
-    motion.setEffectIds(
-      this.createIdVector(this.eyeBlinkIds),
-      this.createIdVector(this.lipSyncIds)
-    )
+    motion.setEffectIds(this.createIdVector(this.eyeBlinkIds), this.createIdVector(this.lipSyncIds))
 
     return motion
   }

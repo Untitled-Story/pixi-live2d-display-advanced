@@ -254,10 +254,7 @@ export class CubismInternalModel extends InternalModel {
   }
 
   updateTransform(transform: Matrix) {
-    this.drawingMatrix
-      .copyFrom(this.modelTransform)
-      .prepend(this.localTransform)
-      .prepend(transform)
+    this.drawingMatrix.copyFrom(this.modelTransform).prepend(this.localTransform).prepend(transform)
   }
 
   public update(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp): void {
@@ -294,8 +291,7 @@ export class CubismInternalModel extends InternalModel {
       value = clamp(value, min_, max_)
       this.motionManager.lipSyncIds.forEach((lipSyncId) => {
         model.addParameterValueById(this.getIdSafe(lipSyncId), value, smoothing)
-        }
-      )
+      })
     }
 
     this.physics?.evaluate(model, dt)
