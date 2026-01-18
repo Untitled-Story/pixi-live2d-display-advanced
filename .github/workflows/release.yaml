@@ -1,0 +1,41 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm install
+      - run: npm run setup
+
+      - name: Publish to NPM
+        run: |
+          REF="${GITHUB_REF_NAME}"
+          TAG="latest"
+          if [[ "$REF" =~ -(alpha|beta|rc)([.-][0-9A-Za-z]+)?$ ]]; then
+            TAG="nightly"
+          fi
+          echo "Publishing to npm with tag: ${TAG} (ref: ${REF})"
+          npm publish --tag "${TAG}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
