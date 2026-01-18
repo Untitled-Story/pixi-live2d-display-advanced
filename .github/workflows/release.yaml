@@ -17,7 +17,6 @@ jobs:
         with:
           node-version: 25
           registry-url: 'https://registry.npmjs.org'
-          always-auth: true
 
       - run: npm install
       - run: npm run setup
