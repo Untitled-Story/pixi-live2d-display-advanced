@@ -10,16 +10,21 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
 
       - run: npm install
       - run: npm run setup
+
+      - name: Build Cubism
+        run: |
+          npm install
+          npm run build
+        working-directory: cubism
 
       - name: Publish to NPM
         run: |
