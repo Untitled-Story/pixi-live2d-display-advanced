@@ -14,7 +14,7 @@ const onData = (data) => {
   let lines = buf.split(/\r?\n/)
   buf = lines.pop()
   for (const line of lines) {
-    if (line.startsWith('src/')) {
+    if (line.startsWith('src/') || line.startsWith('src\\')) {
       process.stdout.write(line + '\n')
 
       if (!hasError) hasError = true
