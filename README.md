@@ -20,7 +20,9 @@ Starting from **v2.0.0**, it is **fully compatible with PixiJS v8 and Live2D Cub
 
 > [!IMPORTANT]
 > The project is currently in the testing phase. If you want to try it out, please install it using the following command:
->
+> 
+> If you are using PixiJS v7, please install the v1.x version.
+> 
 > ```shell
 > npm install pixi-live2d-display-advanced@prerelease
 > ```

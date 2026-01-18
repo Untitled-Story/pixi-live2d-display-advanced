@@ -1,6 +1,6 @@
 {
   "name": "pixi-live2d-display-advanced",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Live2D plugin for PixiJS (with lipsync, multi-motion and play the last frame of a motion)",
   "packageManager": "pnpm@10.26.2",
   "main": "dist/index.js",

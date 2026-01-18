@@ -20,6 +20,9 @@
 
 > [!IMPORTANT]
 > 项目目前处于测试阶段，如想尝试，请使用以下命令进行安装。
+> 
+> 如果使用 PixiJS v7，请安装 v1.x 版本。
+> 
 > ```shell
 > npm install pixi-live2d-display-advanced@prerelease
 > ```
