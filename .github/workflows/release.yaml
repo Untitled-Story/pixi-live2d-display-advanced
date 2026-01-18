@@ -20,12 +20,6 @@ jobs:
       - run: npm install
       - run: npm run setup
 
-      - name: Build Cubism
-        run: |
-          npm install
-          npm run build
-        working-directory: cubism
-
       - name: Publish to NPM
         run: |
           REF="${GITHUB_REF_NAME}"
