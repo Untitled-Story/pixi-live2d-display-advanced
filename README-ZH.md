@@ -18,6 +18,12 @@
 - 强化了 TypeScript 类型安全
 - 优化了内部结构，使其更易扩展与维护
 
+> [!IMPORTANT]
+> 项目目前处于测试阶段，如想尝试，请使用以下命令进行安装。
+> ```shell
+> npm install pixi-live2d-display-advanced@prerelease
+> ```
+
 ---
 
 ## 功能特性

@@ -33,7 +33,7 @@ jobs:
           TAG="latest"
           PRERELEASE="false"
           if [[ "$REF" =~ -(alpha|beta|rc)([.-][0-9A-Za-z]+)?$ ]]; then
-            TAG="nightly"
+            TAG="prerelease"
             PRERELEASE="true"
           fi
           echo "RELEASE_TAG=${TAG}" >> "${GITHUB_ENV}"

@@ -18,6 +18,14 @@ Starting from **v2.0.0**, it is **fully compatible with PixiJS v8 and Live2D Cub
 - Stronger TypeScript type safety
 - Optimized internal architecture for extensibility and maintainability
 
+> [!IMPORTANT]
+> The project is currently in the testing phase. If you want to try it out, please install it using the following command:
+>
+> ```shell
+> npm install pixi-live2d-display-advanced@prerelease
+> ```
+
+
 ---
 
 ## Features
