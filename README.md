@@ -3,7 +3,13 @@
 ![NPM Version](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism version](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
+**English (Current)** | [**简体中文**](README-ZH.md)
+
 A Live2D plugin for [PixiJS](https://github.com/pixijs/pixi.js) v7.
+
+> [!TIP]
+> For PixiJS v8 support,
+> please use [untitled-pixi-live2d-engine](https://github.com/Untitled-Story/untitled-pixi-live2d-engine).
 
 This project provides a **unified and simplified API** for controlling Live2D models on the web.
 Compared to the official Live2D SDKs, this library is easier to use, more reliable, and more maintainable.

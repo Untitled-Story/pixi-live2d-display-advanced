@@ -3,7 +3,13 @@
 ![NPM 版本](https://img.shields.io/npm/v/pixi-live2d-display-advanced?style=flat-square&label=version)
 ![Cubism 版本](https://img.shields.io/badge/Cubism-2/3/4-ff69b4?style=flat-square)
 
+[**English**](README.md) | **简体中文 (当前)**
+
 一款适用于 [PixiJS](https://github.com/pixijs/pixi.js) v7 的 Live2D 插件。
+
+> [!TIP]
+> 若要使用 PixiJS v8，请改用  
+> [untitled-pixi-live2d-engine](https://github.com/Untitled-Story/untitled-pixi-live2d-engine)。
 
 该项目为在网页端控制 Live2D 模型提供了**统一且简化的 API**。与官方 Live2D SDK 相比，本库使用更简便、稳定性更高且更易于维护。
 
