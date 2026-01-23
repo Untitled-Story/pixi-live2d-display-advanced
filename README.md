@@ -20,13 +20,12 @@ Starting from **v2.0.0**, it is **fully compatible with PixiJS v8 and Live2D Cub
 
 > [!IMPORTANT]
 > The project is currently in the testing phase. If you want to try it out, please install it using the following command:
-> 
+>
 > If you are using PixiJS v7, please install the v1.x version.
-> 
+>
 > ```shell
 > npm install pixi-live2d-display-advanced@prerelease
 > ```
-
 
 ---
 
@@ -151,12 +150,15 @@ The following example is based on **PixiJS v8** and supports both Cubism Legacy 
 import { Application } from 'pixi.js'
 import { configureCubism, Live2DModel } from 'pixi-live2d-display-advanced'
 
-const app = new Application({
+const app = new Application()
+app.init({
   resizeTo: window,
-  preference: 'webgl'
+  preference: 'webgl',
+  autoDensity: true,
+  resolution: window.devicePixelRatio
 })
 
-document.body.appendChild(app.view as HTMLCanvasElement)
+document.body.appendChild(app.canvas)
 
 // Configure Cubism Modern work memory (optional, default is 16MB)
 // Increase this value when loading multiple or high-complexity models

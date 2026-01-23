@@ -77,7 +77,7 @@ const stripPatchedBlocks = (content) => {
     const isReferenceTargetsBlock = lines[i].includes('const referenceTargets = [')
     const isLegacyBlock =
       lines[i].includes('declarations.forEach((data, fileName) => {') &&
-      lines[i + 1]?.includes('if (data.startsWith(\'/// <reference\'))')
+      lines[i + 1]?.includes("if (data.startsWith('/// <reference'))")
     if (isReferenceTargetsBlock || isLegacyBlock) {
       i = skipBlock(i)
       continue

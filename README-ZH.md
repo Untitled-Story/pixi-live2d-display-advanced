@@ -20,9 +20,9 @@
 
 > [!IMPORTANT]
 > 项目目前处于测试阶段，如想尝试，请使用以下命令进行安装。
-> 
+>
 > 如果使用 PixiJS v7，请安装 v1.x 版本。
-> 
+>
 > ```shell
 > npm install pixi-live2d-display-advanced@prerelease
 > ```
@@ -151,12 +151,15 @@ cubism.js
 import { Application } from 'pixi.js'
 import { configureCubism, Live2DModel } from 'pixi-live2d-display-advanced'
 
-const app = new Application({
+const app = new Application()
+app.init({
   resizeTo: window,
-  preference: 'webgl'
+  preference: 'webgl',
+  autoDensity: true,
+  resolution: window.devicePixelRatio
 })
 
-document.body.appendChild(app.view as HTMLCanvasElement)
+document.body.appendChild(app.canvas)
 
 // 配置 Cubism Modern 的工作内存（可选，默认 16MB）
 // 当同时加载多个模型或高复杂模型时，建议适当增大
