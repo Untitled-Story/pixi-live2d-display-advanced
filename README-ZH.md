@@ -152,7 +152,7 @@ import { Application } from 'pixi.js'
 import { configureCubism, Live2DModel } from 'pixi-live2d-display-advanced'
 
 const app = new Application()
-app.init({
+await app.init({
   resizeTo: window,
   preference: 'webgl',
   autoDensity: true,
