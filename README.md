@@ -162,9 +162,9 @@ document.body.appendChild(app.canvas)
 
 // Configure Cubism Modern work memory (optional, default is 16MB)
 // Increase this value when loading multiple or high-complexity models
-configureCubism({
-  memorySizeMB: 32
-})
+// configureCubismSDK({
+//   memorySizeMB: 32
+// })
 
 const model = await Live2DModel.from('model/model3.json')
 model.anchor.set(0.5)

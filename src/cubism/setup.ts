@@ -8,13 +8,16 @@ let startupRetries = 20
 let cubismMemory = 16
 
 interface CubismConfig {
+  /**
+   * Memory size in megabytes for Cubism's internal heap.
+   */
   memorySizeMB?: number
 }
 
 /**
  * Configures global Cubism startup settings.
  */
-export function configureCubism(config: CubismConfig = {}): void {
+export function configureCubismSDK(config: CubismConfig = {}): void {
   if (config.memorySizeMB != null) {
     cubismMemory = config.memorySizeMB
   }
@@ -73,8 +76,8 @@ export function startUpCubism(options?: Option, memorySizeMB?: number) {
 /**
  * Reconfigures Cubism settings and restarts the framework so they take effect.
  */
-export function reconfigureCubism(config: CubismConfig = {}): void {
-  configureCubism(config)
+export function reconfigureCubismSDK(config: CubismConfig = {}): void {
+  configureCubismSDK(config)
 
   if (CubismFramework.isInitialized()) {
     CubismFramework.dispose()

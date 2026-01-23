@@ -163,9 +163,9 @@ document.body.appendChild(app.canvas)
 
 // 配置 Cubism Modern 的工作内存（可选，默认 16MB）
 // 当同时加载多个模型或高复杂模型时，建议适当增大
-configureCubism({
-  memorySizeMB: 32
-})
+// configureCubismSDK({
+//   memorySizeMB: 32
+// })
 
 const model = await Live2DModel.from('model/model3.json')
 model.anchor.set(0.5)
